@@ -1732,25 +1732,29 @@ function renderLoanResult() {
   document.getElementById('loan-result').style.display = 'block';
 
   document.getElementById('res-dsr-limit').textContent = won(r.primarySingleDsrLimit);
-  document.getElementById('res-dsr-note').textContent = '본인 단독 · 스트레스 DSR 기준';
+  document.getElementById('res-dsr-note').textContent = '주 차주 1명의 소득만 반영 · 현재 정책 데이터와 입력값 기준 추정';
 
   document.getElementById('res-stress-limit').textContent = won(r.jointConservativeDsrLimit);
-  document.getElementById('res-stress-note').textContent = '공동차주 보수 인정 · 스트레스 DSR 기준' + (r.isPartnerIncomeUnknown ? ' · 참고용 시나리오' : '');
+  document.getElementById('res-stress-note').textContent = '파트너 소득 보수 인정 · 실제 은행 인정소득 확인 필요';
 
   document.getElementById('res-equity').textContent = won(r.equity);
-  document.getElementById('res-equity-note').textContent = '확정 자기자본 · 조건부 자금 별도 ' + won(r.capitalSummary.conditionalSupport);
+  document.getElementById('res-equity-note').textContent = '보유 현금/저축 중심 · 부모 지원 예정액 등 조건부 자금 별도 ' + won(r.capitalSummary.conditionalSupport);
 
   renderLoanOverview(r);
   renderLoanKeyEvidence(r);
+  renderLoanLimitExplanation(r);
 
   // 수도권 절대 한도 안내
   var capBox = document.getElementById('res-cap-box');
   if (r.purchaseMortgageCapStatus === 'policy_data_missing') {
     capBox.innerHTML = '<strong>⚠️ 주담대 cap 정책 데이터 확인 필요</strong><br>' + r.purchaseMortgageCapLabel;
     capBox.style.display = 'block';
-  } else if (r.isMetro) {
-    capBox.innerHTML = '<strong>📌 수도권/규제지역 주담대 절대 한도 (2025.10~ 기준)</strong><br>' +
-      '매매가 15억 이하 → 최대 6억 / 15~25억 → 최대 4억 / 25억 초과 → 최대 2억<br>' +
+  } else if (r.isMetro || r.targetProperty.isRegulatedArea) {
+    var capTiers = POLICY && POLICY.purchase_mortgage_cap && Array.isArray(POLICY.purchase_mortgage_cap.tiers)
+      ? POLICY.purchase_mortgage_cap.tiers.map(function (tier) { return tier.label; }).join(' / ')
+      : '가격 구간별 cap 정책 데이터 확인 필요';
+    capBox.innerHTML = '<strong>📌 수도권/규제지역 주담대 절대 한도 · 현재 정책 데이터 기준</strong><br>' +
+      escapeHTML(capTiers) + '<br>' +
       '입력 가격 구간 cap: <strong>' + won(r.purchaseMortgageCap) + '</strong> · DSR 반영 후 상한: <strong>' + won(r.finalLoanLimit) + '</strong>';
     capBox.style.display = 'block';
   } else {
@@ -1806,10 +1810,70 @@ function renderLoanKeyEvidence(r) {
   var container = document.getElementById('loan-key-evidence');
   if (!container) return;
   container.innerHTML = '<div class="loan-key-evidence-grid">' +
-    '<div><span>조건부 자금</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong></div>' +
-    '<div><span>생활감당 한도</span><strong>' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</strong></div>' +
-    '<div><span>최종 병목 요인</span><strong>' + escapeHTML(r.loanLimitBottleneck.label) + '</strong></div>' +
+    '<div><span>조건부 자금 (부모 지원 예정액 등)</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong><small>세무·자금출처 확인 전에는 확정자금과 분리</small></div>' +
+    '<div><span>생활감당 한도 (우리 지갑 기준)</span><strong>' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</strong><small>월 생활비를 남기고 갚을 수 있는 범위</small></div>' +
+    '<div><span>최종 병목 요인</span><strong>' + escapeHTML(r.loanLimitBottleneck.label) + '</strong><small>여러 기준 중 가장 낮아 최종 금액을 제한하는 기준</small></div>' +
     '</div>';
+}
+
+function renderLoanLimitExplanation(r) {
+  var container = document.getElementById('loan-limit-explanation');
+  if (!container) return;
+  var capText = r.purchaseMortgageCap === null
+    ? '정책 데이터 확인 필요'
+    : (isFinite(r.purchaseMortgageCap) ? won(r.purchaseMortgageCap) : 'cap 미적용');
+  var manualLimitText = r.jointManualDsrLimit === null ? '확인 필요' : won(r.jointManualDsrLimit);
+  var dsrRate = POLICY && POLICY.dsr ? POLICY.dsr.bank_limit : null;
+  var dsrRateText = isFinite(dsrRate) ? pct(dsrRate) : '정책 데이터 확인 필요';
+  var confirmedRange = r.capitalSummary.confirmedUsableCapital + r.finalRecommendedLoan;
+  var conditionalRange = r.capitalSummary.totalPotentialCapital + r.finalRecommendedLoan;
+  var capReason = r.purchaseMortgageCapLabel || '입력 주택가격 구간의 cap 정책 데이터 확인 필요';
+  var bottleneckSummary = '제도상 LTV 한도 ' + won(r.ltvLimit) + ', 가격 구간 cap ' + capText +
+    '을 통과한 뒤 DSR 기준에서는 ' + won(r.loanByDsr) + ', 생활감당 기준에서는 ' +
+    won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '까지 낮아집니다.';
+  var walletVsBankSummary = r.affordabilitySummary.selectedAffordabilityLoanLimit < r.loanByDsr
+    ? '현재 입력값에서는 DSR보다 생활감당 한도가 더 낮아 최종 판단을 더 강하게 제한합니다.'
+    : '현재 입력값에서는 생활감당 한도보다 DSR 한도가 더 낮거나 같아 은행 소득 기준을 먼저 확인해야 합니다.';
+  container.innerHTML = '<details class="loan-limit-explanation" open><summary>왜 이 금액까지만 빌릴 수 있나요?</summary>' +
+    '<div class="loan-limit-explanation-body">' +
+    '<p><strong>대출한도는 한 가지 기준으로 정해지지 않습니다.</strong> 집값 기준 LTV, 은행이 보는 소득 기준 DSR, 정책상 정해진 절대 대출 상한인 cap을 차례로 비교합니다. 이 앱은 여기에 우리 가계 현금흐름 기준인 생활감당 한도도 추가로 봅니다. 아래 값은 현재 정책 데이터와 입력값 기준 추정입니다.</p>' +
+    '<div class="loan-beginner-callout"><strong>DSR은 은행 기준, 생활감당은 우리 지갑 기준입니다.</strong><span>DSR은 은행이 “이 소득이면 얼마까지 빌려줄 수 있나”를 보는 기준입니다. 생활감당은 은행이 빌려준다고 해도 실제 생활이 무너지지 않는지 따로 보는 기준입니다.</span><small>' + escapeHTML(walletVsBankSummary) + '</small></div>' +
+    '<div class="loan-limit-rule-grid">' +
+    '<article><strong>1단계 LTV</strong><span>집값 대비 빌릴 수 있는 비율</span><small>목표 주택가격 ' + won(r.targetProperty.price) + ' × 현재 적용 LTV ' + pct(r.ltvRate) + ' = ' + won(r.ltvLimit) + '</small></article>' +
+    '<article><strong>2단계 cap</strong><span>정책상 정해진 절대 대출 상한</span><small>' + escapeHTML(capReason) + ' · 현재 적용값 ' + capText + '</small></article>' +
+    '<article><strong>3단계 DSR</strong><span>은행이 보는 소득 기준 한도</span><small>현재 정책 데이터 기준 은행권 DSR ' + dsrRateText + '와 스트레스 금리를 반영한 범위 ' + won(r.loanByDsr) + '</small></article>' +
+    '<article><strong>4단계 생활감당</strong><span>우리 가계 현금흐름 기준 한도</span><small>월 생활비와 안전 월 상환 가능액에서 역산한 범위 ' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</small></article>' +
+    '</div>' +
+    '<div class="loan-limit-compare"><h4>한도 비교</h4>' +
+    '<div><span>LTV 기준 한도</span><strong>' + won(r.ltvLimit) + '</strong><small>목표 주택가격 × 현재 적용 LTV</small></div>' +
+    '<div><span>주택가격별 cap</span><strong>' + capText + '</strong><small>' + escapeHTML(capReason) + '</small></div>' +
+    '<div><span>공동차주 보수 DSR 한도</span><strong>' + won(r.jointConservativeDsrLimit) + '</strong><small>실제 은행에서 소득이 낮게 인정될 가능성을 반영한 참고 시나리오</small></div>' +
+    '<div><span>DSR 반영 후 제도상 상한</span><strong>' + won(r.finalLoanLimit) + '</strong><small>LTV, cap, 선택된 DSR 기준을 차례로 적용한 범위</small></div>' +
+    '<div><span>생활감당 한도</span><strong>' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</strong><small>월 생활비와 안전 월 상환 가능액 기준</small></div>' +
+    '<p><strong>현재 병목: ' + escapeHTML(r.loanLimitBottleneck.label) + '</strong><br>' + escapeHTML(bottleneckSummary) + '</p></div>' +
+    '<div class="loan-dsr-help"><h4>DSR 시나리오 해석</h4>' +
+    '<div><strong>본인 단독 DSR 한도 · ' + won(r.primarySingleDsrLimit) + '</strong><small>본인 또는 주 차주 1명의 소득만 반영한 대출 원금 추정치입니다. 집값 기준 한도가 아닙니다.</small></div>' +
+    '<div><strong>공동차주 보수 인정 DSR · ' + won(r.jointConservativeDsrLimit) + '</strong><small>두 사람 소득을 함께 보되 프리랜서·자영업자 소득은 낮게 인정될 가능성을 반영한 참고값입니다. 실제 은행 인정소득 확인이 필요합니다.</small></div>' +
+    '<div><strong>공동차주 100% 인정 가정 · ' + won(r.jointFullDsrLimit) + '</strong><small>파트너 소득이 전액 인정된다고 가정한 참고값이며 실제 은행 심사에서는 달라질 수 있습니다.</small></div>' +
+    '<div><strong>은행 인정소득 직접입력 기준 · ' + manualLimitText + '</strong><small>은행에서 인정하는 파트너 소득을 입력하면 공동차주 한도를 더 현실적으로 비교할 수 있습니다.</small></div>' +
+    '</div>' +
+    '<div class="loan-viewable-range"><h4>우리가 실제로 봐야 할 집값 범위</h4>' +
+    '<p><strong>지금 확실한 돈만 기준으로 보면:</strong> ' + won(confirmedRange) + ' 안팎부터 비교하는 것이 안전합니다.</p>' +
+    '<p><strong>부모 지원 예정액까지 실제로 사용할 수 있다면:</strong> ' + won(conditionalRange) + ' 안팎까지 비교 범위가 넓어질 수 있습니다.</p>' +
+    '<small>부모 지원 예정액은 증여·차용·지원 성격과 자금출처 확인이 필요합니다. 표시 금액은 매수 가능 확정값이 아니라 비교를 시작하기 위한 입력값 기준 추정입니다.</small></div>' +
+    '<details class="loan-inline-help"><summary>핵심 용어 도움말 보기</summary><div class="loan-term-help-grid">' +
+    '<p><strong>DSR</strong> 은행이 보는 소득 기준 한도입니다.</p><p><strong>LTV</strong> 집값 대비 빌릴 수 있는 비율입니다.</p>' +
+    '<p><strong>주택가격별 cap</strong> 지역·가격 구간에 따라 정책상 정해진 절대 대출 상한입니다.</p><p><strong>생활감당 한도</strong> 월 생활비를 남기고 무리 없이 갚을 수 있는 우리 가계 기준입니다.</p>' +
+    '<p><strong>확정 자기자본</strong> 지금 바로 본인 자금으로 볼 수 있는 돈입니다.</p><p><strong>조건부 자금</strong> 부모 지원 예정액 등 아직 세무·자금출처 확인이 필요한 돈입니다.</p>' +
+    '<p><strong>공동차주</strong> 두 사람의 인정소득을 함께 반영해 심사받는 구조입니다.</p><p><strong>보수 인정 소득</strong> 실제 은행에서 소득이 낮게 인정될 가능성을 반영한 참고값입니다.</p>' +
+    '<p><strong>정책대출 판단용 소득</strong> 정책대출 자격을 볼 때 사용하는 입력 세전 합산소득입니다.</p><p><strong>최종 병목</strong> 여러 기준 중 가장 낮아 최종 금액을 제한하는 기준입니다.</p>' +
+    '</div></details>' +
+    '<details class="loan-inline-help"><summary>내가 입력한 값은 어디에 반영되나요?</summary><div class="loan-input-map">' +
+    '<p><strong>보유 현금/저축</strong><span>확정 자기자본으로 반영</span></p><p><strong>부모 지원 예정액</strong><span>조건부 자금으로 분리</span></p>' +
+    '<p><strong>월 생활비</strong><span>생활감당 한도 계산에 반영</span></p><p><strong>파트너 소득</strong><span>공동차주 보수/100% DSR 시나리오에 반영</span></p>' +
+    '<p><strong>파트너 은행 인정소득</strong><span>은행 직접입력 DSR에 반영</span></p><p><strong>부수입</strong><span>신고·증빙 여부에 따라 DSR 반영 가능액과 자금출처 설명액을 분리</span></p>' +
+    '</div></details>' +
+    '</div></details>';
 }
 
 function renderLoanDecisionSummary(r) {
@@ -1856,7 +1920,7 @@ function renderLoanDecisionSummary(r) {
     '<div><span>공동차주 DSR · 100% 인정 가정</span><strong>' + won(r.jointFullDsrLimit) + '</strong></div>' +
     '<div><span>공동차주 DSR · 은행 직접입력</span><strong>' + manualLimitText + '</strong></div>' +
     '<div><span>확정 자기자본</span><strong>' + won(r.capitalSummary.confirmedUsableCapital) + '</strong></div>' +
-    '<div><span>조건부 자금</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong></div>' +
+    '<div><span>조건부 자금 (부모 지원 예정액 등)</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong></div>' +
     '<div><span>총 잠재 자기자본</span><strong>' + won(r.capitalSummary.totalPotentialCapital) + '</strong></div>' +
     '<div><span>확정 자기자본 기준 필요대출</span><strong>' + won(r.requiredLoanAmount) + '</strong></div>' +
     '<div><span>조건부 자금 포함 기준 필요대출</span><strong>' + won(r.conditionalRequiredLoanAmount) + '</strong></div>' +
@@ -1875,7 +1939,7 @@ function renderLoanDecisionSummary(r) {
 function renderLoanAffordability(r) {
   var container = document.getElementById('loan-affordability');
   if (!container) return;
-  container.innerHTML = '<section class="loan-section loan-affordability-section"><div class="loan-section-heading"><span class="loan-section-kicker">버틸 수 있나?</span><h3>생활감당 역산</h3><p>은행 한도와 별개로 실제 월 현금흐름에서 감당 가능한 대출 규모를 먼저 봅니다.</p></div>' +
+  container.innerHTML = '<section class="loan-section loan-affordability-section"><div class="loan-section-heading"><span class="loan-section-kicker">버틸 수 있나?</span><h3>생활감당 역산 · 우리 지갑 기준</h3><p>생활감당은 은행 기준이 아닙니다. 월 소득에서 생활비와 기존 지출을 빼고도 무리 없이 갚을 수 있는 대출 규모를 역산합니다.</p></div>' +
     renderAffordabilitySummary(r.affordabilitySummary, r.loanLimitBottleneck) + '</section>';
 }
 
@@ -2046,7 +2110,9 @@ function calcScenario() {
 
   var baseRate = r.baseRate;
   var loanMax = r.finalLoanLimit;
-  var equity = r.equity;
+  var confirmedCapital = r.capitalSummary.confirmedUsableCapital;
+  var conditionalCapital = r.capitalSummary.conditionalUsableCapital;
+  var totalPotentialCapital = r.capitalSummary.totalPotentialCapital;
 
   // 안전 = DSR 25% 수준, 현실 = 33%, 영끌 = 40%
   var safeRatio = 0.25;
@@ -2066,11 +2132,25 @@ function calcScenario() {
   var realLoan = loanByRatio(realRatio);
   var yoloLoan = loanMax;
 
+  function buildScenario(loan) {
+    return {
+      loan: loan,
+      purchaseLimitConfirmed: confirmedCapital + loan,
+      purchaseLimitWithConditional: totalPotentialCapital + loan
+    };
+  }
+
   state.scenarioResult = {
-    safe: { loan: safeLoan, buy: equity + safeLoan },
-    real: { loan: realLoan, buy: equity + realLoan },
-    yolo: { loan: yoloLoan, buy: equity + yoloLoan },
-    equity: equity,
+    safe: buildScenario(safeLoan),
+    real: buildScenario(realLoan),
+    yolo: buildScenario(yoloLoan),
+    equity: confirmedCapital,
+    capitalSummary: {
+      confirmedCapital: confirmedCapital,
+      conditionalCapital: conditionalCapital,
+      totalPotentialCapital: totalPotentialCapital
+    },
+    realAndYoloSame: Math.abs(realLoan - yoloLoan) < 1,
     baseRate: baseRate
   };
 
@@ -2092,11 +2172,12 @@ function renderScenario() {
   function monthlyPayment(loan) { return calcMonthlyPayment(loan, baseRate, r.loanTermYears); }
 
   var rows = [
-    { label: '매수 가능 상한가', safe: won(s.safe.buy), real: won(s.real.buy), yolo: won(s.yolo.buy) },
     { label: '대출 규모', safe: won(s.safe.loan), real: won(s.real.loan), yolo: won(s.yolo.loan), highlight: true },
+    { label: '확정자금 기준 매수 가능가', safe: won(s.safe.purchaseLimitConfirmed), real: won(s.real.purchaseLimitConfirmed), yolo: won(s.yolo.purchaseLimitConfirmed) },
+    { label: '조건부 포함 매수 가능가', safe: won(s.safe.purchaseLimitWithConditional), real: won(s.real.purchaseLimitWithConditional), yolo: won(s.yolo.purchaseLimitWithConditional), highlight: true },
     { label: '월 대출 상환액', safe: wonM(monthlyPayment(s.safe.loan)), real: wonM(monthlyPayment(s.real.loan)), yolo: wonM(monthlyPayment(s.yolo.loan)) },
     { label: 'DSR 비율', safe: pct(s.safe.loan > 0 ? calcMonthlyPayment(s.safe.loan, baseRate, r.loanTermYears) / r.monthlyRecognized : 0), real: pct(s.real.loan > 0 ? calcMonthlyPayment(s.real.loan, baseRate, r.loanTermYears) / r.monthlyRecognized : 0), yolo: pct(s.yolo.loan > 0 ? calcMonthlyPayment(s.yolo.loan, baseRate, r.loanTermYears) / r.monthlyRecognized : 0) },
-    { label: '자기자본', safe: won(s.equity), real: won(s.equity), yolo: won(s.equity) }
+    { label: '자기자본', safe: '확정 ' + won(s.capitalSummary.confirmedCapital) + ' / 조건부 ' + won(s.capitalSummary.conditionalCapital), real: '확정 ' + won(s.capitalSummary.confirmedCapital) + ' / 조건부 ' + won(s.capitalSummary.conditionalCapital), yolo: '확정 ' + won(s.capitalSummary.confirmedCapital) + ' / 조건부 ' + won(s.capitalSummary.conditionalCapital) }
   ];
 
   var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
@@ -2119,6 +2200,16 @@ function renderScenario() {
       '<td class="col-real">' + row.real + '</td>' +
       '<td class="col-yolo">' + row.yolo + '</td></tr>';
   }).join('');
+
+  var capitalNote = document.getElementById('scenario-capital-note');
+  if (capitalNote) {
+    var supportNeedsReview = r.familySupportReview && r.familySupportReview.status === 'tax_review_required';
+    var sameLimitNote = s.realAndYoloSame
+      ? '<p><strong>현실·영끌 동일 산출:</strong> 현재 입력값에서는 DSR 또는 제도상 대출한도 병목 때문에 두 시나리오의 대출 규모가 같습니다.</p>'
+      : '';
+    capitalNote.innerHTML = '<p><strong>조건부 자금 (부모 지원 예정액 등) 안내:</strong> 확정자금 기준은 지금 바로 본인 자금으로 볼 수 있는 금액만 반영합니다. 조건부 포함 기준은 부모 지원 예정액 등 실제 사용 가능성이 있는 자금을 함께 본 비교값입니다.' +
+      (supportNeedsReview ? ' 현재 입력된 조건부 자금은 증여·차용·지원 성격과 자금출처 확인이 필요합니다.' : '') + '</p>' + sameLimitNote;
+  }
 
   // 현금흐름 카드
   var cfGrid = document.getElementById('cashflow-grid');
@@ -2403,7 +2494,8 @@ function renderReport() {
     var mp_yolo = calcMonthlyPayment(s.yolo.loan, r.baseRate, r.loanTermYears);
     body += '<div class="report-section"><h3>🏠 주거 예산 시나리오</h3>' +
       '<table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="background:#f5f4f0"><th style="padding:8px;text-align:left">구분</th><th style="padding:8px;text-align:right">안전</th><th style="padding:8px;text-align:right">현실</th><th style="padding:8px;text-align:right">영끌</th></tr></thead><tbody>' +
-      '<tr style="border-bottom:1px solid #f0efea"><td style="padding:8px;color:#888">매수 상한가</td><td style="padding:8px;text-align:right">' + won(s.safe.buy) + '</td><td style="padding:8px;text-align:right">' + won(s.real.buy) + '</td><td style="padding:8px;text-align:right">' + won(s.yolo.buy) + '</td></tr>' +
+      '<tr style="border-bottom:1px solid #f0efea"><td style="padding:8px;color:#888">확정자금 기준 매수 가능가</td><td style="padding:8px;text-align:right">' + won(s.safe.purchaseLimitConfirmed) + '</td><td style="padding:8px;text-align:right">' + won(s.real.purchaseLimitConfirmed) + '</td><td style="padding:8px;text-align:right">' + won(s.yolo.purchaseLimitConfirmed) + '</td></tr>' +
+      '<tr style="border-bottom:1px solid #f0efea"><td style="padding:8px;color:#888">조건부 포함 매수 가능가</td><td style="padding:8px;text-align:right">' + won(s.safe.purchaseLimitWithConditional) + '</td><td style="padding:8px;text-align:right">' + won(s.real.purchaseLimitWithConditional) + '</td><td style="padding:8px;text-align:right">' + won(s.yolo.purchaseLimitWithConditional) + '</td></tr>' +
       '<tr style="border-bottom:1px solid #f0efea"><td style="padding:8px;color:#888">월 대출 상환</td><td style="padding:8px;text-align:right">' + wonM(mp_safe) + '</td><td style="padding:8px;text-align:right">' + wonM(mp_real) + '</td><td style="padding:8px;text-align:right">' + wonM(mp_yolo) + '</td></tr>' +
       '<tr><td style="padding:8px;color:#888">월 잔여 현금</td><td style="padding:8px;text-align:right">' + wonM(monthlyNet - mp_safe - r.monthlyLiving) + '</td><td style="padding:8px;text-align:right">' + wonM(monthlyNet - mp_real - r.monthlyLiving) + '</td><td style="padding:8px;text-align:right">' + wonM(monthlyNet - mp_yolo - r.monthlyLiving) + '</td></tr>' +
       '</tbody></table></div>';
