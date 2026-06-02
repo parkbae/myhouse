@@ -750,10 +750,18 @@ function determinePropertyPriceBand(price) {
   return 'over_2500m';
 }
 
+function normalizeDealType(value) {
+  if (value === 'purchase' || value === '매매' || value === 'buy') return 'purchase';
+  if (value === 'jeonse' || value === '전세') return 'jeonse';
+  if (value === 'monthly' || value === '월세' || value === 'rent') return 'monthly';
+  return 'purchase';
+}
+
 function determinePrimaryLoanPath(input) {
   var targetProperty = input.targetProperty || {};
+  var transactionType = normalizeDealType(targetProperty.transactionType);
   var band = determinePropertyPriceBand(targetProperty.price);
-  if (targetProperty.transactionType !== 'purchase') {
+  if (transactionType !== 'purchase') {
     return { primaryPath: 'jeonse_or_rent_logic', priceBand: band, reason: '매매가 아닌 거래유형이므로 전세/월세 판단으로 이동' };
   }
   if (band === 'unknown') {
@@ -836,6 +844,7 @@ function enrichPolicyCandidate(key, candidate) {
 
 function evaluatePolicyLoanCandidates(input) {
   var property = input.targetProperty || {};
+  var transactionType = normalizeDealType(property.transactionType);
   var household = input.household || {};
   var loans = POLICY && POLICY.policy_loans ? POLICY.policy_loans : {};
   var price = Number(property.price || 0);
@@ -848,7 +857,7 @@ function evaluatePolicyLoanCandidates(input) {
   var didimdol = loans.didimdol;
   if (!didimdol) {
     result.didimdol = policyCandidate('policy_data_missing', '디딤돌 정책 데이터 없음');
-  } else if (property.transactionType !== 'purchase') {
+  } else if (transactionType !== 'purchase') {
     result.didimdol = policyCandidate('not_primary', '매매 거래가 아니므로 구입자금대출은 비주력');
   } else {
     var didimdolPriceMax = Number(isNewlywed ? didimdol.price_max_newlywed_or_two_children : didimdol.price_max_general) || 0;
@@ -871,7 +880,7 @@ function evaluatePolicyLoanCandidates(input) {
   var newborn = loans.newborn_didimdol;
   if (!newborn) {
     result.newbornSpecial = policyCandidate('policy_data_missing', '신생아특례 정책 데이터 없음');
-  } else if (property.transactionType !== 'purchase') {
+  } else if (transactionType !== 'purchase') {
     result.newbornSpecial = policyCandidate('not_primary', '매매 거래가 아니므로 구입 신생아특례는 비주력');
   } else if (price > Number(newborn.price_max || 0)) {
     result.newbornSpecial = policyCandidate('not_available', '주택가격 요건 초과', ['주택가격 요건 초과']);
@@ -887,7 +896,7 @@ function evaluatePolicyLoanCandidates(input) {
   var buttimmok = loans.newlywed_jeonse;
   if (!buttimmok) {
     result.buttimmokJeonse = policyCandidate('policy_data_missing', '버팀목 전세자금 정책 데이터 없음');
-  } else if (property.transactionType !== 'jeonse') {
+  } else if (transactionType !== 'jeonse') {
     result.buttimmokJeonse = policyCandidate('not_primary', '매매 거래유형이므로 전세대출은 비주력/비적용');
   } else {
     var depositMax = isMetroArea(property.regionSido) ? buttimmok.deposit_max_metro : buttimmok.deposit_max_other;
@@ -1433,7 +1442,7 @@ function calcLoan() {
   var regionType = getSelect('region_type');
   var firstBuyer = getSelect('first_buyer');
   var married = getSelect('married');
-  var transactionType = getSelect('target_transaction_type') || 'purchase';
+  var transactionType = normalizeDealType(getSelect('target_transaction_type'));
   var targetPrice = getInput('target_property_price');
   var regionSido = (document.getElementById('region_sido').value || '').trim();
   var regionSigungu = (document.getElementById('region_sigungu').value || '').trim();
@@ -1547,7 +1556,9 @@ function calcLoan() {
 
   // LTV와 수도권·규제지역 가격 구간별 cap을 각각 적용
   var ltvRate = getApplicableLtv(profileInput);
-  var ltvLimit = transactionType === 'purchase' ? Math.max(targetPrice * ltvRate, 0) : 0;
+  var ltvLimit = transactionType === 'purchase' && targetPrice > 0 && ltvRate > 0
+    ? targetPrice * ltvRate
+    : 0;
   var capResult = getPurchaseMortgageCapResult(targetPrice, isMetro || isRegulated);
   var purchaseMortgageCap = capResult.amount;
   var systemMaxLoanBeforeDsr = purchaseMortgageCap === null ? 0 : Math.min(ltvLimit, purchaseMortgageCap);
@@ -1861,6 +1872,9 @@ function renderLoanLimitExplanation(r) {
   var confirmedRange = r.capitalSummary.confirmedUsableCapital + r.finalRecommendedLoan;
   var conditionalRange = r.capitalSummary.totalPotentialCapital + r.finalRecommendedLoan;
   var capReason = r.purchaseMortgageCapLabel || '입력 주택가격 구간의 cap 정책 데이터 확인 필요';
+  var ltvCalculationText = r.targetProperty.transactionType === 'purchase' && r.ltvRate > 0
+    ? '목표 주택가격 ' + won(r.targetProperty.price) + ' × 현재 적용 LTV ' + pct(r.ltvRate) + ' = ' + won(r.ltvLimit)
+    : 'LTV 적용 불가: 거래유형이 매매가 아니거나 LTV 기준이 확인되지 않았습니다.';
   var bottleneckSummary = '제도상 LTV 한도 ' + won(r.ltvLimit) + ', 가격 구간 cap ' + capText +
     '을 통과한 뒤 DSR 기준에서는 ' + won(r.loanByDsr) + ', 생활감당 기준에서는 ' +
     won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '까지 낮아집니다.';
@@ -1872,7 +1886,7 @@ function renderLoanLimitExplanation(r) {
     '<p><strong>대출한도는 한 가지 기준으로 정해지지 않습니다.</strong> 집값 기준 LTV, 은행이 보는 소득 기준 DSR, 정책상 정해진 절대 대출 상한인 cap을 차례로 비교합니다. 이 앱은 여기에 우리 가계 현금흐름 기준인 생활감당 한도도 추가로 봅니다. 아래 값은 현재 정책 데이터와 입력값 기준 추정입니다.</p>' +
     '<div class="loan-beginner-callout"><strong>DSR은 은행 기준, 생활감당은 우리 지갑 기준입니다.</strong><span>DSR은 은행이 “이 소득이면 얼마까지 빌려줄 수 있나”를 보는 기준입니다. 생활감당은 은행이 빌려준다고 해도 실제 생활이 무너지지 않는지 따로 보는 기준입니다.</span><small>' + escapeHTML(walletVsBankSummary) + '</small></div>' +
     '<div class="loan-limit-rule-grid">' +
-    '<article><strong>1단계 LTV</strong><span>집값 대비 빌릴 수 있는 비율</span><small>목표 주택가격 ' + won(r.targetProperty.price) + ' × 현재 적용 LTV ' + pct(r.ltvRate) + ' = ' + won(r.ltvLimit) + '</small></article>' +
+    '<article><strong>1단계 LTV</strong><span>집값 대비 빌릴 수 있는 비율</span><small>' + escapeHTML(ltvCalculationText) + '</small></article>' +
     '<article><strong>2단계 cap</strong><span>정책상 정해진 절대 대출 상한</span><small>' + escapeHTML(capReason) + ' · 현재 적용값 ' + capText + '</small></article>' +
     '<article><strong>3단계 DSR</strong><span>은행이 보는 소득 기준 한도</span><small>현재 정책 데이터 기준 은행권 DSR ' + dsrRateText + '와 스트레스 금리를 반영한 범위 ' + won(r.loanByDsr) + '</small></article>' +
     '<article><strong>4단계 생활감당</strong><span>우리 가계 현금흐름 기준 한도</span><small>월 생활비와 안전 월 상환 가능액에서 역산한 범위 ' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</small></article>' +

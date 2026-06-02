@@ -53,11 +53,93 @@
       <p class="tab-desc">정확한 입력일수록 신뢰도 높은 결과를 얻습니다. 계산 결과는 추정치이며 실제 은행 심사와 다를 수 있습니다.</p>
     </div>
 
+    <div class="profile-start-card">
+      <span class="loan-section-kicker">입력 시작점</span>
+      <h3>먼저, 보고 있는 집값부터 넣어보세요</h3>
+      <p>목표 주택가격을 먼저 입력하면 이후 소득·자산·생활비를 기준으로 얼마나 부족한지 계산합니다.</p>
+      <div class="profile-start-flow"><span>목표 집값 입력</span><b>→</b><span>소득·자산 입력</span><b>→</b><span>대출한도 계산</span><b>→</b><span>버틸 수 있는지 확인</span></div>
+    </div>
+
     <div class="form-grid">
 
-      <!-- 본인 -->
+      <!-- 목표 주택 -->
+      <div class="form-section form-section-wide">
+        <h3 class="section-title">🏠 1. 목표 주택</h3>
+        <p class="form-section-desc">먼저 원하는 집의 가격과 지역을 입력하세요. 이 값이 전체 계산의 출발점입니다.</p>
+        <div class="form-row">
+          <label>거래 유형</label>
+          <select id="target_transaction_type" onchange="onProfileChange()">
+            <option value="purchase">매매</option>
+            <option value="jeonse">전세</option>
+            <option value="monthly">월세</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>목표 주택가격</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="target_property_price" placeholder="예: 100000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+          <div class="form-help">내가 실제로 보고 있는 집의 가격입니다. 이 가격을 기준으로 LTV, 주택가격별 한도, 필요대출액, 부족액을 계산합니다.</div>
+        </div>
+        <div class="form-row">
+          <label>희망 지역</label>
+          <select id="region_type" onchange="onProfileChange()">
+            <option value="metro_regulated">수도권 규제지역 (강남/서초/송파/용산)</option>
+            <option value="metro">수도권 일반</option>
+            <option value="other">지방</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>시도</label>
+          <input type="text" id="region_sido" placeholder="예: 서울" oninput="onProfileChange()" />
+        </div>
+        <div class="form-row">
+          <label>시군구</label>
+          <input type="text" id="region_sigungu" placeholder="예: 마포구" oninput="onProfileChange()" />
+        </div>
+        <div class="form-row">
+          <label>규제지역 여부</label>
+          <select id="target_is_regulated" onchange="onProfileChange()">
+            <option value="auto">희망 지역 구분에 따름</option>
+            <option value="yes">규제지역</option>
+            <option value="no">비규제지역</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>토지거래허가구역 여부</label>
+          <select id="is_land_transaction_permit_zone" onchange="onProfileChange()">
+            <option value="no">아니오</option>
+            <option value="yes">예 / 확인 필요</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>생애최초 / 무주택 여부</label>
+          <select id="first_buyer" onchange="onProfileChange()">
+            <option value="yes">예 — 둘 다 무주택, 생애최초 검토</option>
+            <option value="no">아니오</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>혼인신고 상태</label>
+          <select id="married" onchange="onProfileChange()">
+            <option value="no">미혼 (혼인신고 전)</option>
+            <option value="yes">기혼 (혼인신고 완료)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>출산 후 2년 이내</label>
+          <select id="has_newborn_within_2_years" onchange="onProfileChange()">
+            <option value="no">아니오</option>
+            <option value="yes">예</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 본인 소득 -->
       <div class="form-section">
-        <h3 class="section-title">👤 본인</h3>
+        <h3 class="section-title">👤 2. 소득 정보 · 본인</h3>
+        <p class="form-section-desc">대출한도는 소득으로 갚을 수 있는 범위에서 제한됩니다.</p>
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
@@ -78,9 +160,10 @@
         </div>
       </div>
 
-      <!-- 파트너 -->
+      <!-- 파트너 소득 -->
       <div class="form-section">
-        <h3 class="section-title">👤 파트너</h3>
+        <h3 class="section-title">👤 2. 소득 정보 · 파트너</h3>
+        <p class="form-section-desc">둘이 같이 빌리는 경우 파트너 소득의 은행 인정 범위를 함께 확인합니다.</p>
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
@@ -100,17 +183,27 @@
         <div class="form-row" id="row-income2-note" style="display:none">
           <div class="warn-note">⚠️ 자영업자/프리랜서는 실제 은행 심사 시 인정소득이 낮아질 수 있습니다. 입력 소득의 70~80% 기준으로 보수 계산합니다.</div>
         </div>
+        <div class="form-row">
+          <label>파트너 은행 인정소득</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
+            <span class="unit">만원/년</span>
+          </div>
+          <div class="form-help">은행이 실제 심사에서 인정해주는 파트너 소득입니다. 확인 후 입력하면 둘이 같이 빌릴 때 한도를 더 현실적으로 볼 수 있습니다.</div>
+        </div>
       </div>
 
       <!-- 자산/부채 -->
       <div class="form-section">
-        <h3 class="section-title">💰 자산 & 부채</h3>
+        <h3 class="section-title">💰 3. 보유 자금</h3>
+        <p class="form-section-desc">내 돈과 가족 지원 예정액을 분리해서 봅니다. 확정된 돈과 확인이 필요한 돈은 결과에서 따로 표시됩니다.</p>
         <div class="form-row">
           <label>보유 현금 / 저축</label>
           <div class="input-with-unit">
             <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="cash" placeholder="예: 12000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
+          <div class="form-help">결과에서는 ‘확실히 있는 내 돈’으로 반영됩니다.</div>
         </div>
         <div class="form-row">
           <label>부모 지원 예정액</label>
@@ -148,7 +241,8 @@
 
       <!-- 지출/계획 -->
       <div class="form-section">
-        <h3 class="section-title">🎯 지출 계획</h3>
+        <h3 class="section-title">🎯 4. 지출 계획</h3>
+        <p class="form-section-desc">생활비를 입력해야 실제로 버틸 수 있는 대출 규모를 계산할 수 있습니다.</p>
         <div class="form-row">
           <label>결혼 비용 (예정)</label>
           <div class="input-with-unit">
@@ -164,76 +258,12 @@
           </div>
           <div class="form-help">월 생활비는 월급으로 버틸 수 있는 최대 대출을 계산할 때 사용합니다. 은행이 빌려주는 금액과 실제 생활 가능한 금액은 다를 수 있습니다.</div>
         </div>
-        <div class="form-row">
-          <label>희망 지역</label>
-          <select id="region_type" onchange="onProfileChange()">
-            <option value="metro_regulated">수도권 규제지역 (강남/서초/송파/용산)</option>
-            <option value="metro">수도권 일반</option>
-            <option value="other">지방</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>무주택 여부</label>
-          <select id="first_buyer" onchange="onProfileChange()">
-            <option value="yes">예 — 둘 다 무주택</option>
-            <option value="no">아니오</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>혼인신고 상태</label>
-          <select id="married" onchange="onProfileChange()">
-            <option value="no">미혼 (혼인신고 전)</option>
-            <option value="yes">기혼 (혼인신고 완료)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 목표 주택 -->
-      <div class="form-section">
-        <h3 class="section-title">🏠 목표 주택</h3>
-        <div class="form-row">
-          <label>거래 유형</label>
-          <select id="target_transaction_type" onchange="onProfileChange()">
-            <option value="purchase">매매</option>
-            <option value="jeonse">전세</option>
-            <option value="rent">월세</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>목표 주택가격</label>
-          <div class="input-with-unit">
-            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="target_property_price" placeholder="예: 100000" oninput="onProfileChange()" />
-            <span class="unit">만원</span>
-          </div>
-        </div>
-        <div class="form-row">
-          <label>시도</label>
-          <input type="text" id="region_sido" placeholder="예: 서울" oninput="onProfileChange()" />
-        </div>
-        <div class="form-row">
-          <label>시군구</label>
-          <input type="text" id="region_sigungu" placeholder="예: 마포구" oninput="onProfileChange()" />
-        </div>
-        <div class="form-row">
-          <label>규제지역 여부</label>
-          <select id="target_is_regulated" onchange="onProfileChange()">
-            <option value="auto">희망 지역 구분에 따름</option>
-            <option value="yes">규제지역</option>
-            <option value="no">비규제지역</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>토지거래허가구역 여부</label>
-          <select id="is_land_transaction_permit_zone" onchange="onProfileChange()">
-            <option value="no">아니오</option>
-            <option value="yes">예 / 확인 필요</option>
-          </select>
-        </div>
       </div>
 
       <!-- 대출 상세 -->
       <div class="form-section">
-        <h3 class="section-title">🧮 대출 상세</h3>
+        <h3 class="section-title">🧮 5. 대출 상세</h3>
+        <p class="form-section-desc">금리와 기간은 월상환액과 생활감당 한도에 직접 영향을 줍니다.</p>
         <div class="form-row">
           <label>예상 취득 부대비용</label>
           <div class="input-with-unit">
@@ -270,21 +300,6 @@
             <span class="unit">만원/년</span>
           </div>
         </div>
-        <div class="form-row">
-          <label>파트너 은행 인정소득</label>
-          <div class="input-with-unit">
-            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
-            <span class="unit">만원/년</span>
-          </div>
-          <div class="form-help">은행이 실제 심사에서 인정해주는 파트너 소득입니다. 확인 후 입력하면 둘이 같이 빌릴 때 한도를 더 현실적으로 볼 수 있습니다.</div>
-        </div>
-        <div class="form-row">
-          <label>출산 후 2년 이내</label>
-          <select id="has_newborn_within_2_years" onchange="onProfileChange()">
-            <option value="no">아니오</option>
-            <option value="yes">예</option>
-          </select>
-        </div>
       </div>
 
     </div><!-- /form-grid -->
@@ -292,7 +307,7 @@
     <div class="additional-income-section card-box">
       <div class="additional-income-title-row">
         <div>
-          <h3 class="section-title">부수입 / 기타소득</h3>
+          <h3 class="section-title">6. 부수입 / 기타소득</h3>
           <p class="tab-desc">실제 현금흐름, DSR 인정소득, 자금출처 설명 가능액을 분리해서 판단합니다.</p>
         </div>
         <button class="btn-secondary" type="button" onclick="addAdditionalIncome()">부수입 추가</button>
