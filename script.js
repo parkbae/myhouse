@@ -702,7 +702,7 @@ function renderAdditionalIncomeInputs() {
       '<label>분류<select onchange="' + field('category') + '">' + categories + '</select></label>' +
       '<label>표시명<input value="' + escapeHTML(item.label) + '" onchange="' + field('label') + '" /></label>' +
       '<label>출처<input value="' + escapeHTML(item.sourceName) + '" placeholder="예: 판매 채널" onchange="' + field('sourceName') + '" /></label>' +
-      '<label>연간 금액 (만원)<input type="number" min="0" value="' + wonToManwon(item.amount) + '" onchange="' + field('amount') + '" /></label>' +
+      '<label>연간 금액 (만원)<input type="number" min="0" inputmode="numeric" pattern="[0-9]*" value="' + wonToManwon(item.amount) + '" onchange="' + field('amount') + '" /></label>' +
       '</div><div class="additional-income-checks">' +
       '<label><input type="checkbox"' + checked(item.isRecurring) + ' onchange="' + field('isRecurring') + '" /> 반복 수입</label>' +
       '<label><input type="checkbox"' + checked(item.isReportedToTax) + ' onchange="' + field('isReportedToTax') + '" /> 세무 신고</label>' +
@@ -1789,6 +1789,22 @@ function renderLoanOverview(r) {
   var container = document.getElementById('loan-overview');
   if (!container) return;
   var gap = Math.max(r.affordabilityShortage, r.loanLimitShortage);
+  var confirmedRange = r.capitalSummary.confirmedUsableCapital + r.finalRecommendedLoan;
+  var conditionalRange = r.capitalSummary.totalPotentialCapital + r.finalRecommendedLoan;
+  var fundingTotal = Math.max(r.targetProperty.price, 1);
+  var stackConfirmed = Math.min(r.capitalSummary.confirmedUsableCapital, fundingTotal);
+  var stackConditional = Math.min(r.capitalSummary.conditionalUsableCapital, Math.max(fundingTotal - stackConfirmed, 0));
+  var stackLoan = Math.min(r.finalRecommendedLoan, Math.max(fundingTotal - stackConfirmed - stackConditional, 0));
+  var fundingGap = Math.max(fundingTotal - stackConfirmed - stackConditional - stackLoan, 0);
+  function width(value) { return Math.max(value / fundingTotal * 100, value > 0 ? 1.5 : 0); }
+  var warnings = [];
+  if (r.affordabilitySummary.affordabilityRiskLevel === 'danger') warnings.push('월 상환 부담이 큽니다. 월급으로 버틸 수 있는 최대 대출을 먼저 확인하세요.');
+  if (r.isPartnerIncomeUnknown) warnings.push('파트너 은행 인정소득 확인이 필요합니다.');
+  if (r.familySupportReview && r.familySupportReview.status === 'tax_review_required') warnings.push('부모 지원 예정액은 증여·차용·지원 성격과 자금출처 확인이 필요합니다.');
+  if (r.policyResearchBacklog && r.policyResearchBacklog.length) warnings.push('자동 판정 전 최신 정책 데이터 확인이 필요한 항목이 있습니다.');
+  if (r.married === 'no') warnings.push('혼인신고 시점에 따라 세대·정책대출 요건이 달라질 수 있습니다.');
+  if (r.additionalIncomeReview && r.additionalIncomeReview.riskFlags.length) warnings.push('부수입은 신고·증빙 여부에 따라 대출소득 반영액이 달라집니다.');
+  warnings = warnings.slice(0, 3);
   var summary = r.riskLevel === 'safe'
     ? '현재 입력값 기준으로 목표 주택가격을 비교 가능한 범위 안에서 검토할 수 있습니다.'
     : '현재 입력값 기준으로 목표 주택가격은 ' + (r.blocker === 'affordability' || r.affordabilityShortage > 0 ? '생활감당 기준에서' : '대출 구조에서') + ' 부담이 큽니다.';
@@ -1802,16 +1818,33 @@ function renderLoanOverview(r) {
     '<div><span>최종 권장 대출액</span><strong>' + won(r.finalRecommendedLoan) + '</strong></div>' +
     '<div><span>목표 주택가격</span><strong>' + won(r.targetProperty.price) + '</strong></div>' +
     '<div><span>생활안전 기준 부족액</span><strong>' + won(gap) + '</strong></div>' +
-    '<div><span>최종 병목</span><strong>' + escapeHTML(r.loanLimitBottleneck.label) + '</strong></div>' +
-    '</div></section>';
+    '<div><span>가장 크게 막는 기준</span><strong>' + escapeHTML(r.loanLimitBottleneck.label) + '</strong></div>' +
+    '</div>' +
+    '<div class="loan-overview-ranges"><p><strong>확실한 내 돈만 기준으로 보면</strong> ' + won(confirmedRange) + ' 안팎부터 비교하는 것이 안전합니다.</p>' +
+    '<p><strong>부모 지원 예정액까지 실제 사용할 수 있다면</strong> ' + won(conditionalRange) + ' 안팎까지 비교 범위가 넓어질 수 있습니다.</p>' +
+    '<small>부모 지원 예정액 등 확인 필요한 돈은 자금출처·세무 확인 전에는 확정자금으로 보지 않습니다.</small></div>' +
+    '<div class="loan-overview-warnings"><strong>지금 가장 중요한 확인 ' + warnings.length + '가지</strong><ol>' +
+    warnings.map(function (warning) { return '<li>' + escapeHTML(warning) + '</li>'; }).join('') + '</ol></div>' +
+    '<div class="funding-stack-wrap"><div class="funding-stack-title">' + won(r.targetProperty.price) + ' 목표가격 구성</div>' +
+    '<div class="funding-stack" aria-label="목표 주택가격 구성">' +
+    '<span class="funding-segment confirmed" style="width:' + width(stackConfirmed) + '%" title="확실한 내 돈"></span>' +
+    '<span class="funding-segment conditional" style="width:' + width(stackConditional) + '%" title="부모 지원 예정액 등 확인 필요한 돈"></span>' +
+    '<span class="funding-segment loan" style="width:' + width(stackLoan) + '%" title="권장 대출액"></span>' +
+    '<span class="funding-segment gap" style="width:' + width(fundingGap) + '%" title="부족액"></span></div>' +
+    '<div class="funding-stack-legend">' +
+    '<span><i class="confirmed"></i>확실한 내 돈 <strong>' + won(r.capitalSummary.confirmedUsableCapital) + '</strong></span>' +
+    '<span><i class="conditional"></i>부모 지원 예정액 등 확인 필요한 돈 <strong>' + won(r.capitalSummary.conditionalUsableCapital) + '</strong><small>확인 필요</small></span>' +
+    '<span><i class="loan"></i>권장 대출액 <strong>' + won(r.finalRecommendedLoan) + '</strong></span>' +
+    '<span><i class="gap"></i>부족액 <strong>' + (fundingGap > 0 ? won(fundingGap) : '없음') + '</strong></span>' +
+    '</div></div></section>';
 }
 
 function renderLoanKeyEvidence(r) {
   var container = document.getElementById('loan-key-evidence');
   if (!container) return;
   container.innerHTML = '<div class="loan-key-evidence-grid">' +
-    '<div><span>조건부 자금 (부모 지원 예정액 등)</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong><small>세무·자금출처 확인 전에는 확정자금과 분리</small></div>' +
-    '<div><span>생활감당 한도 (우리 지갑 기준)</span><strong>' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</strong><small>월 생활비를 남기고 갚을 수 있는 범위</small></div>' +
+    '<div><span>부모 지원 예정액 등 확인 필요한 돈</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong><small>세무·자금출처 확인 전에는 조건부 자금으로 분리</small></div>' +
+    '<div><span>월급으로 버틸 수 있는 최대 대출</span><strong>' + won(r.affordabilitySummary.selectedAffordabilityLoanLimit) + '</strong><small>생활감당 한도 · 월 생활비를 남기고 갚을 수 있는 범위</small></div>' +
     '<div><span>최종 병목 요인</span><strong>' + escapeHTML(r.loanLimitBottleneck.label) + '</strong><small>여러 기준 중 가장 낮아 최종 금액을 제한하는 기준</small></div>' +
     '</div>';
 }
@@ -2242,10 +2275,15 @@ function renderStressTest() {
   var r = state.loanResult;
   if (!s || !r) return;
 
-  var stressAdd = parseFloat(document.getElementById('stress-rate-select').value) || 0;
+  var range = document.getElementById('stress-rate-range');
+  var stressAdd = parseFloat(range ? range.value : 0) || 0;
   var stressRate = r.baseRate + stressAdd;
   var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
   var ml = r.monthlyLiving;
+  var stressLabel = document.getElementById('stress-rate-label');
+  var stressSummary = document.getElementById('stress-rate-summary');
+  if (stressLabel) stressLabel.textContent = '+' + pct(stressAdd) + 'p';
+  if (stressSummary) stressSummary.textContent = '현재 금리 ' + pct(r.baseRate) + ' + 상승폭 ' + pct(stressAdd) + 'p = 비교 금리 ' + pct(stressRate);
 
   var scenarios = [
     { label: '🟢 안전', loan: s.safe.loan },
@@ -2253,13 +2291,13 @@ function renderStressTest() {
     { label: '🔴 영끌', loan: s.yolo.loan }
   ];
 
-  var html = '<table class="scenario-table"><thead><tr><th>구분</th><th>월 상환 (현재)</th><th>월 상환 (금리 +' + pct(stressAdd) + ')</th><th>잔여 현금</th><th>판정</th></tr></thead><tbody>';
+  var html = '<table class="scenario-table"><thead><tr><th>구분</th><th>월 상환 (현재)</th><th>월 상환 (금리 +' + pct(stressAdd) + 'p)</th><th>월 상환 증가</th><th>잔여 현금</th><th>판정</th></tr></thead><tbody>';
   scenarios.forEach(function (sc) {
     var mpNow = calcMonthlyPayment(sc.loan, r.baseRate, r.loanTermYears);
     var mpStress = calcMonthlyPayment(sc.loan, stressRate, r.loanTermYears);
     var surplus = monthlyNet - mpStress - ml;
     var verdict = surplus >= 500000 ? '<span class="verdict-ok">안정</span>' : (surplus >= 0 ? '<span class="verdict-warn">주의</span>' : '<span class="verdict-fail">위험</span>');
-    html += '<tr><td>' + sc.label + '</td><td>' + wonM(mpNow) + '</td><td>' + wonM(mpStress) + '</td><td>' + wonM(surplus) + '</td><td>' + verdict + '</td></tr>';
+    html += '<tr><td>' + sc.label + '</td><td>' + wonM(mpNow) + '</td><td>' + wonM(mpStress) + '</td><td>+' + wonM(Math.max(mpStress - mpNow, 0)) + '</td><td>' + wonM(surplus) + '</td><td>' + verdict + '</td></tr>';
   });
   html += '</tbody></table>';
 

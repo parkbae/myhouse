@@ -61,7 +61,7 @@
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="income1" placeholder="예: 5400" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income1" placeholder="예: 5400" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
@@ -84,9 +84,10 @@
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="income2" placeholder="예: 4000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income2" placeholder="예: 4000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
+          <div class="form-help">파트너 소득은 둘이 같이 대출받을 때 한도에 영향을 줄 수 있습니다. 프리랜서·자영업자 소득은 은행에서 입력값보다 낮게 인정될 수 있습니다.</div>
         </div>
         <div class="form-row">
           <label>직종</label>
@@ -107,16 +108,17 @@
         <div class="form-row">
           <label>보유 현금 / 저축</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="cash" placeholder="예: 12000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="cash" placeholder="예: 12000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>부모 지원 예정액</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="support" placeholder="예: 5000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="support" placeholder="예: 5000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
+          <div class="form-help">부모님이 도와줄 예정인 돈입니다. 성격이 확정되지 않았다면 결과에서는 확인 필요한 돈으로 분리합니다. 대출소득에는 포함되지 않으며 자금출처·세무 확인이 필요할 수 있습니다.</div>
         </div>
         <div class="form-row">
           <label>부모 지원금 성격</label>
@@ -131,14 +133,14 @@
         <div class="form-row">
           <label>기존 대출 잔액 합계</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="existing_debt" placeholder="예: 1000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="existing_debt" placeholder="예: 1000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>기존 대출 월 상환액</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="monthly_debt" placeholder="예: 30" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="monthly_debt" placeholder="예: 30" oninput="onProfileChange()" />
             <span class="unit">만원/월</span>
           </div>
         </div>
@@ -150,16 +152,17 @@
         <div class="form-row">
           <label>결혼 비용 (예정)</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="wedding_cost" placeholder="예: 3000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="wedding_cost" placeholder="예: 3000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>월 생활비 (현재)</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="monthly_living" placeholder="예: 300" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="monthly_living" placeholder="예: 300" oninput="onProfileChange()" />
             <span class="unit">만원/월</span>
           </div>
+          <div class="form-help">월 생활비는 월급으로 버틸 수 있는 최대 대출을 계산할 때 사용합니다. 은행이 빌려주는 금액과 실제 생활 가능한 금액은 다를 수 있습니다.</div>
         </div>
         <div class="form-row">
           <label>희망 지역</label>
@@ -199,7 +202,7 @@
         <div class="form-row">
           <label>목표 주택가격</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="target_property_price" placeholder="예: 100000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="target_property_price" placeholder="예: 100000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
@@ -234,21 +237,21 @@
         <div class="form-row">
           <label>예상 취득 부대비용</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="purchase_costs" placeholder="예: 3000" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="purchase_costs" placeholder="예: 3000" oninput="onProfileChange()" />
             <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>희망 대출기간</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="loan_term_years" value="30" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="loan_term_years" value="30" oninput="onProfileChange()" />
             <span class="unit">년</span>
           </div>
         </div>
         <div class="form-row">
           <label>예상 주담대 금리</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="mortgage_rate" step="0.01" placeholder="예: 4.3" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="decimal" id="mortgage_rate" step="0.01" placeholder="예: 4.3" oninput="onProfileChange()" />
             <span class="unit">%</span>
           </div>
         </div>
@@ -263,16 +266,17 @@
         <div class="form-row">
           <label>기존 대출 연간 원리금</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="existing_debt_annual_payment" placeholder="미입력 시 월 상환액 사용" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="existing_debt_annual_payment" placeholder="미입력 시 월 상환액 사용" oninput="onProfileChange()" />
             <span class="unit">만원/년</span>
           </div>
         </div>
         <div class="form-row">
           <label>파트너 은행 인정소득</label>
           <div class="input-with-unit">
-            <input type="number" min="0" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
             <span class="unit">만원/년</span>
           </div>
+          <div class="form-help">은행이 실제 심사에서 인정해주는 파트너 소득입니다. 확인 후 입력하면 둘이 같이 빌릴 때 한도를 더 현실적으로 볼 수 있습니다.</div>
         </div>
         <div class="form-row">
           <label>출산 후 2년 이내</label>
@@ -358,17 +362,17 @@
         </div>
         <div class="card-group">
           <div class="result-card">
-            <div class="rc-label">본인 단독 DSR 한도</div>
+            <div class="rc-label">혼자 빌릴 때 소득 기준 한도</div>
             <div class="rc-big" id="res-dsr-limit">—</div>
             <div class="rc-sub" id="res-dsr-note">—</div>
           </div>
           <div class="result-card">
-            <div class="rc-label">공동차주 보수 인정 DSR</div>
+            <div class="rc-label">둘이 같이 빌릴 때 보수적 한도</div>
             <div class="rc-big" id="res-stress-limit">—</div>
             <div class="rc-sub" id="res-stress-note">—</div>
           </div>
           <div class="result-card">
-            <div class="rc-label">확정 자기자본</div>
+            <div class="rc-label">확실히 있는 내 돈</div>
             <div class="rc-big" id="res-equity">—</div>
             <div class="rc-sub" id="res-equity-note">—</div>
           </div>
@@ -437,14 +441,10 @@
       <!-- 금리 상승 스트레스 테스트 -->
       <h3 class="section-title" style="margin-top:2rem">금리 상승 스트레스 테스트</h3>
       <div class="stress-wrap">
-        <label>가정 금리 상승폭:
-          <select id="stress-rate-select" onchange="renderStressTest()">
-            <option value="0">현재 금리 유지</option>
-            <option value="0.01">+1%p</option>
-            <option value="0.02" selected>+2%p</option>
-            <option value="0.03">+3%p</option>
-          </select>
-        </label>
+        <label for="stress-rate-range">가정 금리 상승폭: <strong id="stress-rate-label">+2%p</strong></label>
+        <input type="range" id="stress-rate-range" min="0" max="0.03" step="0.0025" value="0.02" oninput="renderStressTest()" />
+        <div class="stress-range-scale"><span>현재 금리</span><span>+1%p</span><span>+2%p</span><span>+3%p</span></div>
+        <p class="stress-rate-summary" id="stress-rate-summary"></p>
         <div id="stress-result"></div>
       </div>
 
@@ -481,21 +481,21 @@
           <div class="form-row" id="prop-price-row">
             <label>매매가 / 전세보증금</label>
             <div class="input-with-unit">
-              <input type="number" min="0" id="prop-price" placeholder="예: 65000" />
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="prop-price" placeholder="예: 65000" />
               <span class="unit">만원</span>
             </div>
           </div>
           <div class="form-row prop-monthly-row" style="display:none">
             <label>보증금</label>
             <div class="input-with-unit">
-              <input type="number" min="0" id="prop-deposit" placeholder="예: 5000" />
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="prop-deposit" placeholder="예: 5000" />
               <span class="unit">만원</span>
             </div>
           </div>
           <div class="form-row prop-monthly-row" style="display:none">
             <label>월세</label>
             <div class="input-with-unit">
-              <input type="number" min="0" id="prop-monthly" placeholder="예: 120" />
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="prop-monthly" placeholder="예: 120" />
               <span class="unit">만원/월</span>
             </div>
           </div>
@@ -504,14 +504,14 @@
           <div class="form-row">
             <label>관리비</label>
             <div class="input-with-unit">
-              <input type="number" min="0" id="prop-maint" placeholder="예: 20" />
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="prop-maint" placeholder="예: 20" />
               <span class="unit">만원/월</span>
             </div>
           </div>
           <div class="form-row">
             <label>통근 시간 (편도)</label>
             <div class="input-with-unit">
-              <input type="number" min="0" id="prop-commute" placeholder="예: 45" />
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="prop-commute" placeholder="예: 45" />
               <span class="unit">분</span>
             </div>
           </div>

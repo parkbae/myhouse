@@ -391,6 +391,42 @@ body {
 .loan-overview-kpis span, .loan-overview-kpis strong { display: block; }
 .loan-overview-kpis span { color: #c7d5ed; font-size: 11px; margin-bottom: 3px; }
 .loan-overview-kpis strong { color: #fff; font-size: 17px; }
+.loan-overview-ranges, .loan-overview-warnings, .funding-stack-wrap {
+  background: rgba(255, 255, 255, 0.095);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  margin-top: 0.65rem;
+  padding: 0.7rem;
+}
+.loan-overview-ranges p, .loan-overview-warnings ol { color: #e5edfb; font-size: 12px; line-height: 1.55; margin: 0; }
+.loan-overview-ranges p + p { margin-top: 0.2rem; }
+.loan-overview-ranges small { color: #c7d5ed; display: block; font-size: 10px; line-height: 1.45; margin-top: 0.3rem; }
+.loan-overview-warnings > strong, .funding-stack-title { color: #fff; display: block; font-size: 12px; }
+.loan-overview-warnings ol { margin-top: 0.35rem; padding-left: 1.15rem; }
+.funding-stack {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  display: flex;
+  height: 16px;
+  margin-top: 0.55rem;
+  overflow: hidden;
+  width: 100%;
+}
+.funding-segment { display: block; min-width: 0; }
+.funding-segment.confirmed, .funding-stack-legend i.confirmed { background: #74c69d; }
+.funding-segment.conditional, .funding-stack-legend i.conditional { background: #ffd166; }
+.funding-segment.loan, .funding-stack-legend i.loan { background: #6ea8fe; }
+.funding-segment.gap, .funding-stack-legend i.gap { background: #ef6f6c; }
+.funding-stack-legend {
+  display: grid;
+  gap: 0.35rem 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.55rem;
+}
+.funding-stack-legend span { color: #e7eefb; font-size: 11px; line-height: 1.4; }
+.funding-stack-legend i { border-radius: 50%; display: inline-block; height: 8px; margin-right: 0.3rem; width: 8px; }
+.funding-stack-legend strong { color: #fff; }
+.funding-stack-legend small { background: rgba(255, 255, 255, 0.16); border-radius: 8px; color: #fff; margin-left: 0.3rem; padding: 1px 4px; }
 .loan-quick-nav {
   align-items: center;
   background: rgba(255, 255, 255, 0.96);
@@ -903,13 +939,9 @@ body {
   gap: 10px;
   margin-bottom: 1rem;
 }
-.stress-wrap select {
-  height: 36px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  padding: 0 10px;
-  font-size: 13px;
-}
+.stress-wrap input[type="range"] { accent-color: #1a3a8a; cursor: pointer; width: 100%; }
+.stress-range-scale { color: #888; display: flex; font-size: 11px; justify-content: space-between; margin: 0.25rem 0 0.65rem; }
+.stress-rate-summary { color: #526079; font-size: 12px; margin: 0 0 0.75rem; }
 #stress-result {
   background: #fff;
   border-radius: 12px;
@@ -1050,4 +1082,11 @@ body {
   .loan-section { padding: 0.9rem; }
   #app-main { padding: 1rem 1rem 4rem; }
   .logo-sub { display: none; }
+}
+@media (max-width: 480px) {
+  .loan-overview-kpis, .loan-key-evidence-grid, .funding-stack-legend { grid-template-columns: 1fr; }
+  .loan-overview-kpis strong { font-size: 14px; overflow-wrap: anywhere; }
+  .affordability-compare-grid strong { font-size: 17px; overflow-wrap: anywhere; }
+  .scenario-table { font-size: 12px; min-width: 620px; }
+  .scenario-table th, .scenario-table td { padding: 9px 10px; }
 }
