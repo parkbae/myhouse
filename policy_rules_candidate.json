@@ -1,0 +1,440 @@
+{
+  "generatedAt": "2026-06-02T22:54:46.199Z",
+  "candidateOnly": true,
+  "requiresHumanReview": true,
+  "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
+  "candidates": [
+    {
+      "key": "bok_base_rate",
+      "field": "market_rates.base_rate",
+      "status": "candidate_extracted",
+      "officialAgency": "한국은행",
+      "sourceUrl": "https://www.bok.or.kr",
+      "sourcePathHint": "한국은행 기준금리 / 금융통화위원회 발표",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [
+        "책 통화정책 소개 통화신용정책 운영의 일반원칙 통화신용정책 운영의 일반원칙 일반원칙에 대한 상세 설명자료 목표 및 운영체계 통화정책 목표 물가안정목표제 한국은행 기준금리 통화정책의 실제운영 통화정책 효과의 파급 통화정책방향 결정회의 일정 및 자료 통화정책방향 결정회의 한국은행 기준금리 추이 통화정책수단 공개시장운영 여·수신제도 지급준비제도 금융안정 금융안정업무 소개 금융시스템 금융시스템의 정의 금융시스템의 기능 우리나라의 금융시스템",
+        "털아카이브 채용 전자계약시스템 본인인증 ENGLISH 한국은행 BANK OF KOREA 한국은행 한국은행이 하는 일 설립목적 및 역사 한국은행법의 변천 역대총재 금융통화위원회 금융통화위원회 금융통화위원회의 역사 조직도 운영 및 법규 전략 및 조직가치 경영정보 계약정보 평판조사 윤리경영 법규정보 사회공헌 채용 전자계약시스템 오시는 길 본부 지역본부 인재개발원 지역본부 부산본부 대구경북본부 목포본부 광주전남본부 전북본부 대전세종충남본부 충북본",
+        "인천본부 제주본부 경기본부 경남본부 강릉본부 울산본부 포항본부 강남본부 한국은행 정책/업무 통화정책 통화정책 소개 통화신용정책 운영의 일반원칙 목표 및 운영체계 통화정책방향 결정회의 일정 및 자료 통화정책수단 금융안정 금융안정업무 소개 금융시스템 금융안정의 이해 KOFR 지급결제 지급결제업무 소개 지급결제제도 지급결제제도와 한국은행 금융정보화 모바일현금카드·거스름돈 적립서비스 디지털화폐 국고증권 국고증권업무 소개 국고업무 증권업무 외환"
+      ],
+      "missingFields": [
+        "market_rates.base_rate"
+      ],
+      "recommendation": "market_rates.base_rate 후보값 확인"
+    },
+    {
+      "key": "bok_mortgage_average_rate",
+      "field": "market_rates.mortgage.actual_avg",
+      "status": "candidate_extracted",
+      "officialAgency": "한국은행",
+      "sourceUrl": "https://www.bok.or.kr",
+      "sourcePathHint": "한국은행 > 보도자료 > 금융기관 가중평균금리",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": [
+          "1,106",
+          "8",
+          "85.1",
+          "2026.05",
+          "29",
+          "2026년",
+          "4",
+          "2.92%",
+          "0.10%",
+          "4.20%",
+          "2.02%",
+          "0.02%",
+          "2",
+          "6"
+        ]
+      },
+      "matchedSnippets": [
+        "예금은 1,106.8억달러로 전월말 대비 85.1억달러 증가 ※ 자세한 내용은 첨부파일을 참고하여 주시기 바랍니다. 2026.05.29 상세보기 2026년 4월 금융기관 가중평균금리 □ 2026년 4월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.92%로 전월대비 0.10%p 상승하였으며, 대출금리는 연 4.20%로 전월 수준 유지 ― 2026년 4월말 잔액 기준 총수신금리는 연 2.02%로 전월대비 0.02%p 상... 2026.05.2",
+        "증가 ※ 자세한 내용은 첨부파일을 참고하여 주시기 바랍니다. 2026.05.29 상세보기 2026년 4월 금융기관 가중평균금리 □ 2026년 4월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.92%로 전월대비 0.10%p 상승하였으며, 대출금리는 연 4.20%로 전월 수준 유지 ― 2026년 4월말 잔액 기준 총수신금리는 연 2.02%로 전월대비 0.02%p 상... 2026.05.29 상세보기 [보도참고자료] 2026년 6월"
+      ],
+      "missingFields": [
+        "market_rates.mortgage.actual_avg"
+      ],
+      "recommendation": "은행권 주담대 신규취급 평균금리 후보값 확인"
+    },
+    {
+      "key": "fsc_dsr_stress",
+      "field": "dsr, purchase_mortgage_cap, ltv",
+      "status": "failed",
+      "officialAgency": "금융위원회",
+      "sourceUrl": "https://www.fsc.go.kr",
+      "sourcePathHint": "금융위원회 > 보도자료 / 정책자료 / 주요정책문답",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "dsr",
+        "purchase_mortgage_cap",
+        "ltv"
+      ],
+      "recommendation": "DSR/LTV/주담대 cap 변경 여부 확인"
+    },
+    {
+      "key": "molit_regulated_area",
+      "field": "regulated_areas, ltv",
+      "status": "failed",
+      "officialAgency": "국토교통부",
+      "sourceUrl": "https://www.molit.go.kr",
+      "sourcePathHint": "국토교통부 > 뉴스·소식 > 보도자료 / 고시",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "regulated_areas",
+        "ltv"
+      ],
+      "recommendation": "regulated_areas 후보값 확인"
+    },
+    {
+      "key": "myhome_policy_loans",
+      "field": "policy_loans",
+      "status": "manual_check_required",
+      "officialAgency": "마이홈 / 주택도시기금",
+      "sourceUrl": "https://www.myhome.go.kr",
+      "sourcePathHint": "마이홈포털 > 금융지원 > 디딤돌대출 / 버팀목대출 / 신생아특례",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_loans"
+      ],
+      "recommendation": "policy_loans 후보값 확인"
+    },
+    {
+      "key": "hf_bogeumjari",
+      "field": "policy_loans.bogeumjari",
+      "status": "candidate_extracted",
+      "officialAgency": "한국주택금융공사",
+      "sourceUrl": "https://www.hf.go.kr/ko/sub01/sub01_01_01.do",
+      "sourcePathHint": "HF 한국주택금융공사 > 주택담보대출 > 보금자리론",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": [
+          "271",
+          "6억원",
+          "1",
+          "7",
+          "70%",
+          "60%",
+          "3.6억원",
+          "4억원",
+          "4.2억원",
+          "10",
+          "15",
+          "20",
+          "30",
+          "40",
+          "50년"
+        ]
+      },
+      "matchedSnippets": [
+        "(일반) 상품소개 | 보금자리론 | 주택담보대출 | 한국주택금융공사 주택금융연구원 주택금융통계시스템 유동화증권(K-MBS) 고객의 소리 HF채용 장애인고객지원 인터넷금융서비스 ENG 인터넷금융서비스 ENG HF 한국주택금융공사 모바일 검색 메뉴 인터넷금융서비스 ENG 닫기 주택담보대출 주택담보대출",
+        "수 있음 한국신용정보원 신용정보관리규약 해당사항 없고 CB점수 271점 이상 대출요건 6억원 이하 공부상 주택 본건 담보주택 제외 무주택 또는 1주택 부부합산 연소득 7천만원 이하 LTV 최대 70%- DTI 최대 60% 상품구조 대출한도 최대 3.6억원(다자녀 &middot; 전세사기피해자 4억원, 생애최초 4.2억원) 대출만기 10,15,20,30,40,50년 (만기 40,50년은 특정 조건을 충족하셔야 합니다.) 원리금 균등",
+        "국적동포 포함) - 다만, 재외국민, 외국국적동포는 구입자금보증(생애최초 특례구입자금보증&middot;전세사기피해자 특례구입자금보증 포함)이용이 불가하기 때문에 대출한도가 감액될 수 있음 한국신용정보원 신용정보관리규약 해당사항 없고 CB점수 271점 이상 대출요건 6억원 이하 공부상 주택 본건 담보주택 제외 무주택 또는 1주택 부부합산 연소득 7천만원 이하 LTV 최대 70%- DTI 최대 60% 상품구조 대출한도 최대 3.6억원(다",
+        "원 신용정보관리규약 해당사항 없고 CB점수 271점 이상 대출요건 6억원 이하 공부상 주택 본건 담보주택 제외 무주택 또는 1주택 부부합산 연소득 7천만원 이하 LTV 최대 70%- DTI 최대 60% 상품구조 대출한도 최대 3.6억원(다자녀 &middot; 전세사기피해자 4억원, 생애최초 4.2억원) 대출만기 10,15,20,30,40,50년 (만기 40,50년은 특정 조건을 충족하셔야 합니다.) 원리금 균등, 원금 균등, 체증식",
+        "당사항 없고 CB점수 271점 이상 대출요건 6억원 이하 공부상 주택 본건 담보주택 제외 무주택 또는 1주택 부부합산 연소득 7천만원 이하 LTV 최대 70%- DTI 최대 60% 상품구조 대출한도 최대 3.6억원(다자녀 &middot; 전세사기피해자 4억원, 생애최초 4.2억원) 대출만기 10,15,20,30,40,50년 (만기 40,50년은 특정 조건을 충족하셔야 합니다.) 원리금 균등, 원금 균등, 체증식 분할상환 이런 분들께"
+      ],
+      "missingFields": [
+        "policy_loans.bogeumjari"
+      ],
+      "recommendation": "보금자리론 policy_rules.json 추가 후보 생성"
+    },
+    {
+      "key": "tax_family_support",
+      "field": "tax_review_required",
+      "status": "manual_check_required",
+      "officialAgency": "국세청",
+      "sourceUrl": "",
+      "sourcePathHint": "국세청 > 세금신고 > 증여세 / 금전소비대차 관련 공식 안내",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "tax_review_required"
+      ],
+      "recommendation": "세무 전문가 또는 국세청 공식 안내 확인 후 tax_review_required로 관리"
+    },
+    {
+      "key": "verify_url_기준금리",
+      "field": "",
+      "status": "candidate_extracted",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "https://www.bok.or.kr",
+      "sourcePathHint": "기준금리 공식 확인 시작점",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [
+        "책 통화정책 소개 통화신용정책 운영의 일반원칙 통화신용정책 운영의 일반원칙 일반원칙에 대한 상세 설명자료 목표 및 운영체계 통화정책 목표 물가안정목표제 한국은행 기준금리 통화정책의 실제운영 통화정책 효과의 파급 통화정책방향 결정회의 일정 및 자료 통화정책방향 결정회의 한국은행 기준금리 추이 통화정책수단 공개시장운영 여·수신제도 지급준비제도 금융안정 금융안정업무 소개 금융시스템 금융시스템의 정의 금융시스템의 기능 우리나라의 금융시스템"
+      ],
+      "missingFields": [],
+      "recommendation": "기준금리 관련 공식자료 변경 여부 확인"
+    },
+    {
+      "key": "verify_url_DSR_스트레스",
+      "field": "",
+      "status": "failed",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "https://fsc.go.kr",
+      "sourcePathHint": "DSR_스트레스 공식 확인 시작점",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [],
+      "recommendation": "DSR_스트레스 관련 공식자료 변경 여부 확인"
+    },
+    {
+      "key": "verify_url_규제지역",
+      "field": "",
+      "status": "failed",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "https://www.molit.go.kr",
+      "sourcePathHint": "규제지역 공식 확인 시작점",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [],
+      "recommendation": "규제지역 관련 공식자료 변경 여부 확인"
+    },
+    {
+      "key": "verify_url_정책대출",
+      "field": "",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "https://www.myhome.go.kr",
+      "sourcePathHint": "정책대출 공식 확인 시작점",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [],
+      "recommendation": "정책대출 관련 공식자료 변경 여부 확인"
+    },
+    {
+      "key": "registry_didimdol",
+      "field": "policy_source_registry.didimdol",
+      "status": "manual_check_required",
+      "officialAgency": "국토교통부 / 주택도시기금 / 마이홈",
+      "sourceUrl": "",
+      "sourcePathHint": "마이홈포털 > 금융지원 > 내집마련 디딤돌대출",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_source_registry.didimdol"
+      ],
+      "recommendation": "내집마련 디딤돌대출 필수 필드 확인: incomeLimits, assetLimit, housePriceLimit, loanLimits, ltv, dti, dsrExempt, singleHouseholdRestrictions, newlywedConditions, expectedMarriageConditions"
+    },
+    {
+      "key": "registry_bogeumjari",
+      "field": "policy_source_registry.bogeumjari",
+      "status": "manual_check_required",
+      "officialAgency": "한국주택금융공사",
+      "sourceUrl": "",
+      "sourcePathHint": "HF 한국주택금융공사 > 주택담보대출 > 보금자리론",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_source_registry.bogeumjari"
+      ],
+      "recommendation": "보금자리론 필수 필드 확인: incomeLimits, housePriceLimit, loanLimits, ltv, dti, dsrExempt, newlywedConditions, childrenIncomeRelaxation"
+    },
+    {
+      "key": "registry_newbornSpecial",
+      "field": "policy_source_registry.newbornSpecial",
+      "status": "manual_check_required",
+      "officialAgency": "국토교통부 / 주택도시기금 / 마이홈",
+      "sourceUrl": "",
+      "sourcePathHint": "마이홈포털 > 금융지원 > 신생아 특례 디딤돌대출",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_source_registry.newbornSpecial"
+      ],
+      "recommendation": "신생아 특례 디딤돌대출 필수 필드 확인: incomeLimits, dualIncomeLimits, assetLimit, housePriceLimit, loanLimit, ltv, dti, dsrExempt, newPurchaseRules, refinancingRules"
+    },
+    {
+      "key": "registry_buttimmokJeonse",
+      "field": "policy_source_registry.buttimmokJeonse",
+      "status": "manual_check_required",
+      "officialAgency": "국토교통부 / 주택도시기금",
+      "sourceUrl": "",
+      "sourcePathHint": "주택도시기금 또는 마이홈포털 > 금융지원 > 버팀목전세대출",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_source_registry.buttimmokJeonse"
+      ],
+      "recommendation": "버팀목전세자금대출 필수 필드 확인: incomeLimits, assetLimit, depositLimits, loanLimits, ltvOrGuaranteeRatio, newlywedLimits, dsrExempt"
+    },
+    {
+      "key": "registry_mortgageRegulation",
+      "field": "policy_source_registry.mortgageRegulation",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회",
+      "sourceUrl": "",
+      "sourcePathHint": "금융위원회 > 정책마당 > 정책자료 > 주요정책문답",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_source_registry.mortgageRegulation"
+      ],
+      "recommendation": "일반 주택담보대출 규제 필수 필드 확인: dsrLimits, ltvByRegionAndBuyerType, purchaseMortgageCaps, stressDsrRates, stressDsrLoanTypeMultipliers, regulatedAreaRules"
+    },
+    {
+      "key": "policy_alert_1",
+      "field": "policy_change_alerts",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회",
+      "sourceUrl": "",
+      "sourcePathHint": "금융위원회 > 보도자료 / 가계부채 관련 정책자료",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_change_alerts"
+      ],
+      "recommendation": "2026-06-30 기준 변경 여부 수동 확인"
+    },
+    {
+      "key": "policy_alert_2",
+      "field": "policy_change_alerts",
+      "status": "manual_check_required",
+      "officialAgency": "주택도시기금 / 금융위원회",
+      "sourceUrl": "",
+      "sourcePathHint": "주택도시기금 또는 마이홈포털 > 신혼부부 전용 버팀목전세자금",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "policy_change_alerts"
+      ],
+      "recommendation": "2026년 하반기 기준 변경 여부 수동 확인"
+    },
+    {
+      "key": "update_checklist_1",
+      "field": "_update_checklist",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "",
+      "sourcePathHint": "【2026.07.01】 지방 스트레스DSR 2단계 만료 — 3단계 전환 여부 금융위 공고 확인 (stress.local_non_regulated 수정)",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "_update_checklist"
+      ],
+      "recommendation": "【2026.07.01】 지방 스트레스DSR 2단계 만료 — 3단계 전환 여부 금융위 공고 확인 (stress.local_non_regulated 수정)"
+    },
+    {
+      "key": "update_checklist_2",
+      "field": "_update_checklist",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "",
+      "sourcePathHint": "【2026.07.16】 한국은행 금통위 기준금리 결정 — market_rates.base_rate 갱신",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "_update_checklist"
+      ],
+      "recommendation": "【2026.07.16】 한국은행 금통위 기준금리 결정 — market_rates.base_rate 갱신"
+    },
+    {
+      "key": "update_checklist_3",
+      "field": "_update_checklist",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "",
+      "sourcePathHint": "【2026년 하반기】 신혼 버팀목 소득기준 7,500만→1억 완화 시행 여부 확인 (newlywed_jeonse.income_newlywed_max)",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "_update_checklist"
+      ],
+      "recommendation": "【2026년 하반기】 신혼 버팀목 소득기준 7,500만→1억 완화 시행 여부 확인 (newlywed_jeonse.income_newlywed_max)"
+    },
+    {
+      "key": "update_checklist_4",
+      "field": "_update_checklist",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "",
+      "sourcePathHint": "【수시】 규제지역 추가/해제 — 국토부 고시 확인 (regulated_areas)",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "_update_checklist"
+      ],
+      "recommendation": "【수시】 규제지역 추가/해제 — 국토부 고시 확인 (regulated_areas)"
+    },
+    {
+      "key": "update_checklist_5",
+      "field": "_update_checklist",
+      "status": "manual_check_required",
+      "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
+      "sourceUrl": "",
+      "sourcePathHint": "【수시】 금융위 주담대 한도 정책 변경 — purchase_mortgage_cap 확인",
+      "candidateOnly": true,
+      "candidateValues": {
+        "numericMentions": []
+      },
+      "matchedSnippets": [],
+      "missingFields": [
+        "_update_checklist"
+      ],
+      "recommendation": "【수시】 금융위 주담대 한도 정책 변경 — purchase_mortgage_cap 확인"
+    }
+  ]
+}
