@@ -44,6 +44,8 @@
 <!-- ───── 탭 콘텐츠 ───── -->
 <main id="app-main">
 
+  <div id="policy-load-warning"></div>
+
   <!-- ── 탭1: 내 정보 ── -->
   <div id="tab-profile" class="tab-content active">
     <div class="tab-header">
@@ -55,12 +57,12 @@
 
       <!-- 본인 -->
       <div class="form-section">
-        <h3 class="section-title">👤 본인 (박윤석)</h3>
+        <h3 class="section-title">👤 본인</h3>
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
-            <input type="number" id="income1" placeholder="예: 60000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="income1" placeholder="예: 5400" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
@@ -78,12 +80,12 @@
 
       <!-- 파트너 -->
       <div class="form-section">
-        <h3 class="section-title">👤 파트너 (혜원)</h3>
+        <h3 class="section-title">👤 파트너</h3>
         <div class="form-row">
           <label>연소득 (세전)</label>
           <div class="input-with-unit">
-            <input type="number" id="income2" placeholder="예: 45000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="income2" placeholder="예: 4000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
@@ -105,29 +107,39 @@
         <div class="form-row">
           <label>보유 현금 / 저축</label>
           <div class="input-with-unit">
-            <input type="number" id="cash" placeholder="예: 80000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="cash" placeholder="예: 12000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>부모 지원 예정액</label>
           <div class="input-with-unit">
-            <input type="number" id="support" placeholder="예: 50000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="support" placeholder="예: 5000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
+        </div>
+        <div class="form-row">
+          <label>부모 지원금 성격</label>
+          <select id="family_support_type" onchange="onProfileChange()">
+            <option value="unknown">미정 / 확인 필요</option>
+            <option value="support">지원금</option>
+            <option value="loan">차용금</option>
+            <option value="gift">증여</option>
+            <option value="gift_confirmed">증여 신고 완료</option>
+          </select>
         </div>
         <div class="form-row">
           <label>기존 대출 잔액 합계</label>
           <div class="input-with-unit">
-            <input type="number" id="existing_debt" placeholder="예: 10000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="existing_debt" placeholder="예: 1000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>기존 대출 월 상환액</label>
           <div class="input-with-unit">
-            <input type="number" id="monthly_debt" placeholder="예: 300000" oninput="onProfileChange()" />
-            <span class="unit">원/월</span>
+            <input type="number" min="0" id="monthly_debt" placeholder="예: 30" oninput="onProfileChange()" />
+            <span class="unit">만원/월</span>
           </div>
         </div>
       </div>
@@ -138,15 +150,15 @@
         <div class="form-row">
           <label>결혼 비용 (예정)</label>
           <div class="input-with-unit">
-            <input type="number" id="wedding_cost" placeholder="예: 30000000" oninput="onProfileChange()" />
-            <span class="unit">원</span>
+            <input type="number" min="0" id="wedding_cost" placeholder="예: 3000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
           </div>
         </div>
         <div class="form-row">
           <label>월 생활비 (현재)</label>
           <div class="input-with-unit">
-            <input type="number" id="monthly_living" placeholder="예: 2500000" oninput="onProfileChange()" />
-            <span class="unit">원/월</span>
+            <input type="number" min="0" id="monthly_living" placeholder="예: 300" oninput="onProfileChange()" />
+            <span class="unit">만원/월</span>
           </div>
         </div>
         <div class="form-row">
@@ -173,7 +185,116 @@
         </div>
       </div>
 
+      <!-- 목표 주택 -->
+      <div class="form-section">
+        <h3 class="section-title">🏠 목표 주택</h3>
+        <div class="form-row">
+          <label>거래 유형</label>
+          <select id="target_transaction_type" onchange="onProfileChange()">
+            <option value="purchase">매매</option>
+            <option value="jeonse">전세</option>
+            <option value="rent">월세</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>목표 주택가격</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="target_property_price" placeholder="예: 100000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>시도</label>
+          <input type="text" id="region_sido" placeholder="예: 서울" oninput="onProfileChange()" />
+        </div>
+        <div class="form-row">
+          <label>시군구</label>
+          <input type="text" id="region_sigungu" placeholder="예: 마포구" oninput="onProfileChange()" />
+        </div>
+        <div class="form-row">
+          <label>규제지역 여부</label>
+          <select id="target_is_regulated" onchange="onProfileChange()">
+            <option value="auto">희망 지역 구분에 따름</option>
+            <option value="yes">규제지역</option>
+            <option value="no">비규제지역</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>토지거래허가구역 여부</label>
+          <select id="is_land_transaction_permit_zone" onchange="onProfileChange()">
+            <option value="no">아니오</option>
+            <option value="yes">예 / 확인 필요</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 대출 상세 -->
+      <div class="form-section">
+        <h3 class="section-title">🧮 대출 상세</h3>
+        <div class="form-row">
+          <label>예상 취득 부대비용</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="purchase_costs" placeholder="예: 3000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>희망 대출기간</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="loan_term_years" value="30" oninput="onProfileChange()" />
+            <span class="unit">년</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>예상 주담대 금리</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="mortgage_rate" step="0.01" placeholder="예: 4.3" oninput="onProfileChange()" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>상환방식</label>
+          <select id="repayment_type" onchange="onProfileChange()">
+            <option value="equal_payment">원리금균등상환</option>
+            <option value="equal_principal">원금균등상환</option>
+          </select>
+          <div class="form-help">원리금균등은 매월 상환액이 거의 일정합니다. 원금균등은 첫 달 상환액이 가장 크고 시간이 갈수록 줄어듭니다.</div>
+        </div>
+        <div class="form-row">
+          <label>기존 대출 연간 원리금</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="existing_debt_annual_payment" placeholder="미입력 시 월 상환액 사용" oninput="onProfileChange()" />
+            <span class="unit">만원/년</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>파트너 은행 인정소득</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
+            <span class="unit">만원/년</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>출산 후 2년 이내</label>
+          <select id="has_newborn_within_2_years" onchange="onProfileChange()">
+            <option value="no">아니오</option>
+            <option value="yes">예</option>
+          </select>
+        </div>
+      </div>
+
     </div><!-- /form-grid -->
+
+    <div class="additional-income-section card-box">
+      <div class="additional-income-title-row">
+        <div>
+          <h3 class="section-title">부수입 / 기타소득</h3>
+          <p class="tab-desc">실제 현금흐름, DSR 인정소득, 자금출처 설명 가능액을 분리해서 판단합니다.</p>
+        </div>
+        <button class="btn-secondary" type="button" onclick="addAdditionalIncome()">부수입 추가</button>
+      </div>
+      <div id="additional-income-list"></div>
+    </div>
 
     <!-- 요약 프리뷰 -->
     <div class="profile-summary-bar" id="profile-summary-bar">
@@ -213,36 +334,67 @@
 
     <div id="loan-result" style="display:none">
 
-      <!-- DSR 게이지 -->
-      <div class="card-group">
-        <div class="result-card">
-          <div class="rc-label">소득 기준 DSR 한도</div>
-          <div class="rc-big" id="res-dsr-limit">—</div>
-          <div class="rc-sub" id="res-dsr-note">—</div>
+      <div id="policy-meta-card"></div>
+
+      <div id="loan-overview"></div>
+
+      <nav class="loan-quick-nav" aria-label="대출 결과 빠른 이동">
+        <strong>빠른 이동</strong>
+        <div class="loan-quick-nav-scroll">
+          <button type="button" class="loan-quick-nav-btn active" data-loan-section="loan-overview" onclick="scrollLoanSection('loan-overview')">요약</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-affordability" onclick="scrollLoanSection('loan-affordability')">생활감당</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-limit-section" onclick="scrollLoanSection('loan-limit-section')">대출한도</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-policy-section" onclick="scrollLoanSection('loan-policy-section')">정책대출</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-borrower-section" onclick="scrollLoanSection('loan-borrower-section')">명의·차주</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-risk-section" onclick="scrollLoanSection('loan-risk-section')">리스크</button>
+          <button type="button" class="loan-quick-nav-btn" data-loan-section="loan-next-actions" onclick="scrollLoanSection('loan-next-actions')">액션플랜</button>
         </div>
-        <div class="result-card">
-          <div class="rc-label">스트레스 DSR 적용 후</div>
-          <div class="rc-big" id="res-stress-limit">—</div>
-          <div class="rc-sub" id="res-stress-note">—</div>
+      </nav>
+
+      <section class="loan-section loan-evidence-section" id="loan-limit-section">
+        <div class="loan-section-heading">
+          <span class="loan-section-kicker">핵심 근거</span>
+          <h3>대출 구조를 제한하는 숫자</h3>
         </div>
-        <div class="result-card">
-          <div class="rc-label">자기자본 (실사용 가능)</div>
-          <div class="rc-big" id="res-equity">—</div>
-          <div class="rc-sub" id="res-equity-note">—</div>
+        <div class="card-group">
+          <div class="result-card">
+            <div class="rc-label">본인 단독 DSR 한도</div>
+            <div class="rc-big" id="res-dsr-limit">—</div>
+            <div class="rc-sub" id="res-dsr-note">—</div>
+          </div>
+          <div class="result-card">
+            <div class="rc-label">공동차주 보수 인정 DSR</div>
+            <div class="rc-big" id="res-stress-limit">—</div>
+            <div class="rc-sub" id="res-stress-note">—</div>
+          </div>
+          <div class="result-card">
+            <div class="rc-label">확정 자기자본</div>
+            <div class="rc-big" id="res-equity">—</div>
+            <div class="rc-sub" id="res-equity-note">—</div>
+          </div>
         </div>
-      </div>
+        <div id="loan-key-evidence"></div>
+      </section>
 
       <!-- 주담대 절대 한도 안내 -->
       <div class="info-box" id="res-cap-box"></div>
 
-      <!-- 정책대출 적격 판별 -->
-      <h3 class="section-title" style="margin-top:1.5rem">정책대출 적격 여부</h3>
-      <div class="policy-grid" id="policy-grid"></div>
+      <div id="loan-affordability"></div>
+
+      <div id="loan-decision-summary"></div>
+
+      <div id="loan-financing-strategy"></div>
+
+      <div id="decision-cards-container"></div>
+
+      <div id="additional-income-decision"></div>
 
       <!-- 혼인신고 전략 -->
       <div id="marriage-strategy-box"></div>
 
-      <div class="tab-action">
+      <div id="loan-next-actions"></div>
+
+      <div class="tab-action loan-bottom-action">
         <button class="btn-primary" onclick="calcScenario(); switchTab('tab-scenario')">시나리오 비교하기 →</button>
       </div>
     </div>
@@ -327,22 +479,22 @@
           <div class="form-row" id="prop-price-row">
             <label>매매가 / 전세보증금</label>
             <div class="input-with-unit">
-              <input type="number" id="prop-price" placeholder="예: 650000000" />
-              <span class="unit">원</span>
+              <input type="number" min="0" id="prop-price" placeholder="예: 65000" />
+              <span class="unit">만원</span>
             </div>
           </div>
           <div class="form-row prop-monthly-row" style="display:none">
             <label>보증금</label>
             <div class="input-with-unit">
-              <input type="number" id="prop-deposit" placeholder="예: 50000000" />
-              <span class="unit">원</span>
+              <input type="number" min="0" id="prop-deposit" placeholder="예: 5000" />
+              <span class="unit">만원</span>
             </div>
           </div>
           <div class="form-row prop-monthly-row" style="display:none">
             <label>월세</label>
             <div class="input-with-unit">
-              <input type="number" id="prop-monthly" placeholder="예: 1200000" />
-              <span class="unit">원/월</span>
+              <input type="number" min="0" id="prop-monthly" placeholder="예: 120" />
+              <span class="unit">만원/월</span>
             </div>
           </div>
         </div>
@@ -350,14 +502,14 @@
           <div class="form-row">
             <label>관리비</label>
             <div class="input-with-unit">
-              <input type="number" id="prop-maint" placeholder="예: 200000" />
-              <span class="unit">원/월</span>
+              <input type="number" min="0" id="prop-maint" placeholder="예: 20" />
+              <span class="unit">만원/월</span>
             </div>
           </div>
           <div class="form-row">
             <label>통근 시간 (편도)</label>
             <div class="input-with-unit">
-              <input type="number" id="prop-commute" placeholder="예: 45" />
+              <input type="number" min="0" id="prop-commute" placeholder="예: 45" />
               <span class="unit">분</span>
             </div>
           </div>
@@ -396,7 +548,7 @@
     <div id="report-content" style="display:none">
       <div class="report-header-block">
         <div class="report-title-row">
-          <span class="report-couple">윤석 · 혜원</span>
+          <span class="report-couple">주택구입 판단 리포트</span>
           <span class="report-date" id="report-date"></span>
         </div>
         <div class="report-subtitle">주거 의사결정 분석 리포트</div>

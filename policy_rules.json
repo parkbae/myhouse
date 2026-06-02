@@ -13,6 +13,69 @@
     "지방 스트레스DSR 2026.06.30 만료 후 3단계 전환 여부",
     "버팀목 소득기준 2026년 하반기 1억 완화 시행 여부"
   ],
+  "policy_source_registry": {
+    "didimdol": {
+      "label": "내집마련 디딤돌대출",
+      "officialSourceName": "마이홈포털 내집마련 디딤돌대출",
+      "officialAgency": "국토교통부 / 주택도시기금 / 마이홈",
+      "sourcePathHint": "마이홈포털 > 금융지원 > 내집마련 디딤돌대출",
+      "lastCheckedAt": "2026-06-01",
+      "updateFrequency": "monthly_or_policy_change",
+      "requiredFields": ["incomeLimits", "assetLimit", "housePriceLimit", "loanLimits", "ltv", "dti", "dsrExempt", "singleHouseholdRestrictions", "newlywedConditions", "expectedMarriageConditions"]
+    },
+    "bogeumjari": {
+      "label": "보금자리론",
+      "officialSourceName": "한국주택금융공사 보금자리론 상품소개",
+      "officialAgency": "한국주택금융공사",
+      "sourcePathHint": "HF 한국주택금융공사 > 주택담보대출 > 보금자리론",
+      "lastCheckedAt": null,
+      "updateFrequency": "monthly_or_policy_change",
+      "requiredFields": ["incomeLimits", "housePriceLimit", "loanLimits", "ltv", "dti", "dsrExempt", "newlywedConditions", "childrenIncomeRelaxation"]
+    },
+    "newbornSpecial": {
+      "label": "신생아 특례 디딤돌대출",
+      "officialSourceName": "마이홈포털 신생아 특례 디딤돌대출",
+      "officialAgency": "국토교통부 / 주택도시기금 / 마이홈",
+      "sourcePathHint": "마이홈포털 > 금융지원 > 신생아 특례 디딤돌대출",
+      "lastCheckedAt": "2026-06-01",
+      "updateFrequency": "monthly_or_policy_change",
+      "requiredFields": ["incomeLimits", "dualIncomeLimits", "assetLimit", "housePriceLimit", "loanLimit", "ltv", "dti", "dsrExempt", "newPurchaseRules", "refinancingRules"]
+    },
+    "buttimmokJeonse": {
+      "label": "버팀목전세자금대출",
+      "officialSourceName": "주택도시기금 버팀목전세자금대출",
+      "officialAgency": "국토교통부 / 주택도시기금",
+      "sourcePathHint": "주택도시기금 또는 마이홈포털 > 금융지원 > 버팀목전세대출",
+      "lastCheckedAt": null,
+      "updateFrequency": "monthly_or_policy_change",
+      "requiredFields": ["incomeLimits", "assetLimit", "depositLimits", "loanLimits", "ltvOrGuaranteeRatio", "newlywedLimits", "dsrExempt"]
+    },
+    "mortgageRegulation": {
+      "label": "일반 주택담보대출 규제",
+      "officialSourceName": "금융위원회 주택담보대출 규제 FAQ / 보도자료",
+      "officialAgency": "금융위원회",
+      "sourcePathHint": "금융위원회 > 정책마당 > 정책자료 > 주요정책문답",
+      "lastCheckedAt": "2026-06-01",
+      "updateFrequency": "policy_change",
+      "requiredFields": ["dsrLimits", "ltvByRegionAndBuyerType", "purchaseMortgageCaps", "stressDsrRates", "stressDsrLoanTypeMultipliers", "regulatedAreaRules"]
+    }
+  },
+  "policy_change_alerts": [
+    {
+      "title": "지방 스트레스DSR 유예 종료 후 단계 전환 확인",
+      "effectiveDate": "2026-06-30",
+      "source": "금융위원회",
+      "sourcePathHint": "금융위원회 > 보도자료 / 가계부채 관련 정책자료",
+      "status": "check_required"
+    },
+    {
+      "title": "신혼 버팀목 소득기준 완화 시행 여부 확인",
+      "effectiveDate": "2026년 하반기",
+      "source": "주택도시기금 / 금융위원회",
+      "sourcePathHint": "주택도시기금 또는 마이홈포털 > 신혼부부 전용 버팀목전세자금",
+      "status": "check_required"
+    }
+  ],
 
   "dsr": {
     "bank_limit": 0.40,

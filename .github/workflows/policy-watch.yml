@@ -1,0 +1,40 @@
+name: Policy Watch
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # UTC 21:00 = KST 06:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  policy-watch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run policy watcher
+        run: node scripts/policy-watch.js
+
+      - name: Show report
+        run: |
+          cat policy_watch_report.json || true
+          cat policy_rules_candidate.json || true
+
+      - name: Commit report files
+        run: |
+          git config user.name "policy-watch-bot"
+          git config user.email "policy-watch-bot@users.noreply.github.com"
+          git add policy_watch_report.json policy_rules_candidate.json
+          git diff --cached --quiet || git commit -m "chore: update policy watch report"
+          git push
+
+      # Future extension: open an issue or pull request when changed items require review.

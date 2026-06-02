@@ -166,6 +166,49 @@ body {
   line-height: 1.5;
 }
 
+/* ── 부수입 입력 ── */
+.additional-income-section { margin-bottom: 1.5rem; }
+.additional-income-title-row, .additional-income-head, .decision-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.additional-income-item {
+  border: 1px solid #e8e7e2;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  background: #fafaf8;
+}
+.additional-income-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.additional-income-grid label, .additional-income-checks label {
+  font-size: 12px;
+  color: #666;
+}
+.additional-income-grid input, .additional-income-grid select {
+  display: block;
+  width: 100%;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 0 8px;
+  margin-top: 4px;
+  background: #fff;
+}
+.additional-income-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.9rem;
+}
+.additional-income-empty { color: #888; font-size: 13px; padding-top: 0.75rem; }
+
 /* ── 프로필 요약 바 ── */
 .profile-summary-bar {
   background: #1a1a2e;
@@ -248,6 +291,414 @@ body {
   line-height: 1.6;
 }
 .info-box strong { font-weight: 700; }
+
+/* ── 정책 로드 상태 ── */
+.policy-load-warning {
+  background: #fff8e6;
+  border: 1.5px solid #ffd666;
+  border-radius: 10px;
+  color: #5a3a00;
+  font-size: 13px;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+}
+.policy-meta-card {
+  background: #fff;
+  border: 1px solid #d9e2f5;
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+  padding: 0.8rem 1rem;
+}
+.policy-meta-card h3 { font-size: 15px; }
+.policy-load-badge {
+  background: #e8f5e9;
+  border-radius: 14px;
+  color: #2e7d32;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+}
+.policy-load-badge.fallback { background: #fff3e0; color: #e65100; }
+.policy-meta-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 0.55rem;
+}
+.policy-meta-grid div { background: #f7f9fc; border-radius: 7px; padding: 0.65rem; }
+.policy-meta-grid span, .policy-meta-grid strong { display: block; }
+.policy-meta-grid span { color: #888; font-size: 11px; margin-bottom: 3px; }
+.policy-meta-grid strong { color: #333; font-size: 12px; overflow-wrap: anywhere; }
+.policy-meta-warning { color: #a14500; font-size: 12px; margin-top: 0.7rem; }
+
+/* ── 대출 결과 리포트 구조 ── */
+.loan-section {
+  background: #fff;
+  border: 1px solid #e3e7ee;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px rgba(26, 42, 77, 0.045);
+  margin-top: 1rem;
+  padding: 1.1rem;
+}
+.loan-section-heading h3 { color: #1a1a2e; font-size: 17px; margin: 0.15rem 0 0.2rem; }
+.loan-section-heading p { color: #777; font-size: 12px; line-height: 1.55; margin: 0; }
+.loan-section-kicker {
+  color: #46608f;
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.loan-overview-card {
+  background: linear-gradient(135deg, #172a4d, #213d70);
+  border-radius: 15px;
+  box-shadow: 0 8px 22px rgba(18, 43, 83, 0.18);
+  color: #fff;
+  margin-bottom: 1rem;
+  padding: 1.35rem;
+}
+.loan-overview-card .loan-section-kicker { color: #bcd1fa; }
+.loan-overview-main {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+.loan-overview-title-row {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+.loan-overview-title-row h3 { color: #fff; font-size: 19px; line-height: 1.4; margin: 0; }
+.loan-overview-main p { color: #dce6f8; font-size: 13px; line-height: 1.55; margin: 0.45rem 0 0; }
+.loan-overview-main strong { color: #fff; }
+.loan-overview-cta { flex: 0 0 auto; white-space: nowrap; }
+.loan-overview-kpis {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+.loan-overview-kpis div {
+  background: rgba(255, 255, 255, 0.095);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+.loan-overview-kpis span, .loan-overview-kpis strong { display: block; }
+.loan-overview-kpis span { color: #c7d5ed; font-size: 11px; margin-bottom: 3px; }
+.loan-overview-kpis strong { color: #fff; font-size: 17px; }
+.loan-quick-nav {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #dce3ef;
+  border-radius: 11px;
+  box-shadow: 0 5px 16px rgba(26, 42, 77, 0.08);
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.55rem 0.65rem;
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+}
+.loan-quick-nav strong {
+  color: #33415f;
+  flex: 0 0 auto;
+  font-size: 11px;
+}
+.loan-quick-nav-scroll {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.loan-quick-nav-btn {
+  background: #f4f6fa;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  color: #526079;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0.35rem 0.6rem;
+}
+.loan-quick-nav-btn:hover, .loan-quick-nav-btn.active {
+  background: #eaf0ff;
+  border-color: #b9caf2;
+  color: #1a3a8a;
+}
+.loan-evidence-section .card-group { margin: 0.85rem 0 0.65rem; }
+.loan-evidence-section .result-card { background: #f8fafc; border-color: #e4e8ef; box-shadow: none; }
+.loan-key-evidence-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.loan-key-evidence-grid div { background: #f7f7f4; border-radius: 8px; padding: 0.7rem; }
+.loan-key-evidence-grid span, .loan-key-evidence-grid strong { display: block; }
+.loan-key-evidence-grid span { color: #888; font-size: 11px; margin-bottom: 3px; }
+.loan-key-evidence-grid strong { color: #253858; font-size: 14px; }
+.loan-detail-accordion, .loan-supporting-details {
+  background: #fff;
+  border: 1px solid #e3e7ee;
+  border-radius: 10px;
+  margin-top: 0.85rem;
+  padding: 0.8rem 0.9rem;
+}
+.loan-detail-accordion summary, .loan-supporting-details summary {
+  color: #33415f;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+.loan-detail-accordion summary small { color: #999; display: block; font-size: 11px; font-weight: 500; margin-top: 2px; }
+.compact-detail { border: 0; box-shadow: none; margin-top: 0.65rem; padding: 0.4rem 0 0; }
+.loan-policy-section .decision-policy-grid { margin-top: 0.8rem; }
+.loan-policy-section .decision-policy-item { background: #fafbfc; border-radius: 6px; padding: 0.55rem 0.65rem; }
+.loan-actions-section ol { margin: 0.65rem 0 0; padding-left: 1.35rem; }
+.loan-actions-section li { color: #4f596b; font-size: 13px; line-height: 1.6; margin-bottom: 0.25rem; }
+.loan-bottom-action { margin-top: 1rem; }
+
+/* ── 대출 판단 요약 ── */
+.decision-section {
+  background: #fff;
+  border: 1px solid #e8e7e2;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.decision-section h3 { font-size: 16px; margin-bottom: 0.75rem; }
+.decision-section h4 { font-size: 13px; margin: 1rem 0 0.5rem; }
+.income-scenario-note {
+  background: #eef3ff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #1a3a8a;
+  margin-top: 0.75rem;
+}
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+.decision-grid div {
+  background: #f7f7f4;
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+.decision-grid span, .decision-grid strong { display: block; }
+.decision-grid span { color: #888; font-size: 11px; margin-bottom: 3px; }
+.decision-risk, .risk-flag {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.decision-risk.safe { background: #e8f5e9; color: #2e7d32; }
+.decision-risk.caution, .decision-risk.pending { background: #fff8e1; color: #e65100; }
+.decision-risk.danger, .decision-risk.unavailable { background: #ffebee; color: #c62828; }
+.decision-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+.decision-policy-item { border-left: 3px solid #1a1a2e; padding: 0.35rem 0.6rem; }
+.decision-policy-item strong, .decision-policy-item span, .decision-policy-item small { display: block; }
+.decision-policy-item span { color: #1a3a8a; font-weight: 700; font-size: 12px; }
+.decision-policy-item small { color: #888; margin-top: 3px; }
+.review-note {
+  background: #fff8e6;
+  border: 1px solid #ffd666;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  color: #8a5700;
+}
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+.strategy-item {
+  background: #fbfcfe;
+  border: 1px solid #e1e6ef;
+  border-radius: 8px;
+  box-shadow: 0 2px 7px rgba(33, 61, 112, 0.04);
+  padding: 0.8rem;
+}
+.strategy-item strong, .strategy-item span, .strategy-item small { display: block; }
+.strategy-item span { color: #1a3a8a; font-size: 11px; font-weight: 700; }
+.strategy-status { margin-top: 0.35rem; }
+.strategy-status.status-recommended { color: #1976d2; }
+.strategy-status.status-possible { color: #2e7d32; }
+.strategy-status.status-caution { color: #e65100; }
+.strategy-status.status-check_required { color: #546e7a; }
+.strategy-item small { color: #888; margin-top: 4px; }
+.decision-actions ul, .additional-income-result ul { padding-left: 1.2rem; }
+.risk-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.9rem; }
+
+/* ── 실행 판단 카드 ── */
+.execution-decision-section {
+  background: #f8f7f3;
+  border: 1px solid #dedbd2;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+}
+.execution-decision-section h3 { font-size: 17px; }
+.execution-decision-section > p { color: #666; font-size: 13px; line-height: 1.6; margin: 0.3rem 0 1rem; }
+.execution-card-guide {
+  background: #1a3a8a;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+.execution-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.execution-card-summary-grid { margin-bottom: 0.9rem; }
+.execution-card {
+  background: #fff;
+  border: 1px solid #e8e7e2;
+  border-left: 4px solid #9ca3af;
+  border-radius: 9px;
+  padding: 0.85rem;
+  min-width: 0;
+}
+.execution-card.status-recommended { border-left-color: #1976d2; }
+.execution-card.status-possible { border-left-color: #43a047; }
+.execution-card.status-caution, .execution-card.status-check_required { border-left-color: #fb8c00; }
+.execution-card.status-danger, .execution-card.status-not_available { border-left-color: #e53935; }
+.execution-card.status-future_candidate { border-left-color: #7e57c2; }
+.execution-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.execution-card-head h5 { font-size: 14px; margin: 0; }
+.execution-card-head span {
+  background: #f0f1f3;
+  border-radius: 12px;
+  color: #555;
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+.execution-card p, .execution-card li {
+  color: #606060;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.execution-card-summary { color: #333 !important; font-weight: 700; margin-top: 0.55rem; }
+.execution-card-list { margin-top: 0.5rem; }
+.execution-card-list strong { color: #444; display: block; font-size: 11px; }
+.execution-card-list ul { margin: 0.2rem 0 0; padding-left: 1rem; }
+.execution-card-warning {
+  background: #fff3e0;
+  border-radius: 6px;
+  color: #a14500 !important;
+  margin-top: 0.6rem;
+  padding: 0.5rem;
+}
+.execution-card-group {
+  background: #fff;
+  border: 1px solid #e8e7e2;
+  border-radius: 9px;
+  margin-top: 0.7rem;
+  padding: 0.7rem;
+}
+.execution-card-group summary {
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.execution-card-group summary span {
+  background: #eef3ff;
+  border-radius: 10px;
+  color: #1a3a8a;
+  font-size: 10px;
+  margin-left: 0.4rem;
+  padding: 2px 6px;
+}
+.execution-card-group[open] summary { margin-bottom: 0.7rem; }
+.execution-card-cluster { scroll-margin-top: 4.4rem; }
+.loan-section, #loan-overview, #loan-affordability, #loan-policy-section, #loan-next-actions { scroll-margin-top: 4.4rem; }
+.execution-unresolved {
+  background: #fff8e6;
+  border: 1px solid #ffd666;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 0.8rem;
+  padding: 0.75rem;
+}
+.execution-unresolved ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+.risk-flag { background: #fff3e0; color: #e65100; margin: 0 5px 5px 0; }
+.risk-flag.none { background: #e8f5e9; color: #2e7d32; }
+.research-backlog { margin-top: 1rem; }
+.research-item {
+  border: 1px solid #ffd666;
+  border-radius: 8px;
+  background: #fffdf5;
+  padding: 0.7rem;
+  margin-top: 0.5rem;
+}
+.research-item strong, .research-item span, .research-item small { display: block; }
+.research-item span { color: #e65100; font-weight: 700; font-size: 11px; }
+.research-item small { color: #666; margin-top: 4px; }
+.affordability-result {
+  background: #f8faff;
+  border: 1px solid #d3def5;
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-top: 0.8rem;
+  color: #1a3a8a;
+}
+.affordability-result > p { color: #63708a; font-size: 12px; line-height: 1.55; }
+.affordability-headline {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0.7rem 0;
+}
+.affordability-headline div { background: #fff; border-radius: 7px; padding: 0.65rem; }
+.affordability-headline span, .affordability-headline strong { display: block; }
+.affordability-headline span { color: #888; font-size: 11px; margin-bottom: 3px; }
+.affordability-risk.safe { color: #2e7d32; }
+.affordability-risk.caution { color: #e65100; }
+.affordability-risk.danger { color: #c62828; }
+.affordability-compare-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.affordability-compare-grid article { background: #fff; border: 1px solid #e2e8f4; border-radius: 8px; padding: 0.8rem; }
+.affordability-compare-grid span, .affordability-compare-grid strong, .affordability-compare-grid small { display: block; }
+.affordability-compare-grid span { color: #5e6f91; font-size: 12px; font-weight: 700; }
+.affordability-compare-grid strong { color: #1a3a8a; font-size: 20px; margin-top: 0.25rem; }
+.affordability-compare-grid small { color: #999; font-size: 11px; }
+.affordability-compare-grid p { color: #68738a; font-size: 12px; margin: 0.55rem 0 0; }
+.form-help {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.45;
+}
 
 /* ── 정책대출 카드 ── */
 .policy-grid {
@@ -493,6 +944,17 @@ body {
   .policy-grid { grid-template-columns: 1fr; }
   .cashflow-grid { grid-template-columns: 1fr; }
   .prop-details { grid-template-columns: repeat(2, 1fr); }
+  .additional-income-grid, .decision-grid, .decision-policy-grid, .strategy-grid, .execution-card-grid, .policy-meta-grid, .loan-key-evidence-grid, .affordability-headline { grid-template-columns: 1fr; }
+  .loan-overview-main { display: block; }
+  .loan-overview-title-row { align-items: flex-start; flex-direction: column; }
+  .loan-overview-title-row h3 { font-size: 17px; }
+  .loan-overview-cta { margin-top: 0.85rem; width: 100%; }
+  .loan-overview-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .loan-overview-kpis strong { font-size: 15px; }
+  .loan-quick-nav { display: block; padding: 0.55rem; }
+  .loan-quick-nav strong { display: block; margin: 0 0 0.35rem 0.15rem; }
+  .affordability-compare-grid { grid-template-columns: 1fr; }
+  .loan-section { padding: 0.9rem; }
   #app-main { padding: 1rem 1rem 4rem; }
   .logo-sub { display: none; }
 }
