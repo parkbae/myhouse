@@ -145,6 +145,7 @@ var AFFORDABILITY_RISK_THRESHOLDS = {
   dangerRatio: 1.2
 };
 
+var OWNERSHIP_CONTRIBUTION_REVIEW_THRESHOLD = 10;
 var NET_INCOME_ESTIMATE_RATE = 0.78;
 var MANWON = 10000;
 
@@ -161,6 +162,11 @@ var MANWON_INPUT_IDS = {
   purchase_costs: true,
   existing_debt_annual_payment: true,
   partner_recognized_income: true,
+  primary_contribution: true,
+  partner_contribution: true,
+  primary_family_support: true,
+  partner_family_support: true,
+  shared_family_support: true,
   'prop-price': true,
   'prop-deposit': true,
   'prop-monthly': true,
@@ -235,6 +241,8 @@ function renderPolicyMeta(data) {
   var card = document.getElementById('policy-meta-card');
   if (!card) return;
   var loadedFromLabel = policyLoadState.loadedFrom === 'json' ? 'policy_rules.json 기준' : '내장 fallback 기준';
+  var policyAlerts = Array.isArray(data.policy_change_alerts) ? data.policy_change_alerts : [];
+  var reviewAlertCount = policyAlerts.filter(function (item) { return item.status === 'check_required'; }).length;
   card.innerHTML = '<section class="policy-meta-card">' +
     '<div class="decision-title-row"><h3>정책 기준 정보</h3><span class="policy-load-badge ' + escapeHTML(policyLoadState.loadedFrom) + '">' + escapeHTML(loadedFromLabel) + '</span></div>' +
     '<div class="policy-meta-grid">' +
@@ -243,7 +251,10 @@ function renderPolicyMeta(data) {
     '<div><span>정책 파일 로드</span><strong>' + escapeHTML(loadedFromLabel) + '</strong></div>' +
     '<div><span>마지막 로드 시각</span><strong>' + escapeHTML(policyLoadState.loadedAt || '확인 필요') + '</strong></div>' +
     '<div><span>다음 검토 예정일</span><strong>' + escapeHTML(data._next_review || '확인 필요') + '</strong></div>' +
+    '<div><span>자동 감시</span><strong>policy-watch 구조 있음 · 자동 반영 안 함</strong></div>' +
+    '<div><span>변경 후보</span><strong>' + (reviewAlertCount > 0 ? reviewAlertCount + '건 검토 필요' : '현재 등록된 검토 후보 없음') + '</strong></div>' +
     '</div>' +
+    '<p class="policy-meta-note">정책값은 자동으로 덮어쓰지 않습니다. 공식자료 변경 후보가 있으면 검토 후 policy_rules.json에 반영해야 합니다.</p>' +
     (policyLoadState.loadedFrom === 'fallback' ? '<p class="policy-meta-warning">주의: policy_rules.json을 불러오지 못해 내장 기준값으로 계산 중입니다.</p>' : '') +
     '</section>';
 }
@@ -757,6 +768,10 @@ function normalizeDealType(value) {
   return 'purchase';
 }
 
+function getDealTypeMode(value) {
+  return normalizeDealType(value);
+}
+
 function determinePrimaryLoanPath(input) {
   var targetProperty = input.targetProperty || {};
   var transactionType = normalizeDealType(targetProperty.transactionType);
@@ -981,6 +996,87 @@ function buildCapitalSummary(cash, supportReview, weddingCost, purchaseCosts) {
   };
 }
 
+function buildOwnershipContributionReview(input) {
+  var data = input || {};
+  var primaryDirectContribution = parseNonNegativeNumber(data.primaryContribution, 0);
+  var partnerDirectContribution = parseNonNegativeNumber(data.partnerContribution, 0);
+  var primaryFamilySupport = parseNonNegativeNumber(data.primaryFamilySupport, 0);
+  var partnerFamilySupport = parseNonNegativeNumber(data.partnerFamilySupport, 0);
+  var sharedFamilySupport = parseNonNegativeNumber(data.sharedFamilySupport, 0);
+  var attributedFamilySupport = primaryFamilySupport + partnerFamilySupport + sharedFamilySupport;
+  var expectedFamilySupport = parseNonNegativeNumber(data.expectedFamilySupport, 0);
+  var familySupportMismatch = Math.abs(attributedFamilySupport - expectedFamilySupport);
+  var primaryInitialContribution = primaryDirectContribution + primaryFamilySupport + sharedFamilySupport * 0.5;
+  var partnerInitialContribution = partnerDirectContribution + partnerFamilySupport + sharedFamilySupport * 0.5;
+  var totalInitialContribution = primaryInitialContribution + partnerInitialContribution;
+  var primaryRepaymentRatio = Math.min(parseNonNegativeNumber(data.primaryRepaymentRatio, 0), 100);
+  var partnerRepaymentRatio = Math.min(parseNonNegativeNumber(data.partnerRepaymentRatio, 0), 100);
+  var primaryOwnershipRatio = Math.min(parseNonNegativeNumber(data.primaryOwnershipRatio, 0), 100);
+  var partnerOwnershipRatio = Math.min(parseNonNegativeNumber(data.partnerOwnershipRatio, 0), 100);
+  var hasRequiredInputs = data.hasPrimaryContributionInput && data.hasPartnerContributionInput &&
+    data.hasPrimaryRepaymentRatioInput && data.hasPartnerRepaymentRatioInput &&
+    data.hasPrimaryOwnershipRatioInput && data.hasPartnerOwnershipRatioInput && totalInitialContribution > 0;
+  var primaryInitialContributionRatio = hasRequiredInputs ? primaryInitialContribution / totalInitialContribution * 100 : null;
+  var partnerInitialContributionRatio = hasRequiredInputs ? partnerInitialContribution / totalInitialContribution * 100 : null;
+  var primaryInitialDifference = hasRequiredInputs ? Math.abs(primaryInitialContributionRatio - primaryOwnershipRatio) : null;
+  var partnerInitialDifference = hasRequiredInputs ? Math.abs(partnerInitialContributionRatio - partnerOwnershipRatio) : null;
+  var primaryRepaymentDifference = hasRequiredInputs ? Math.abs(primaryRepaymentRatio - primaryOwnershipRatio) : null;
+  var partnerRepaymentDifference = hasRequiredInputs ? Math.abs(partnerRepaymentRatio - partnerOwnershipRatio) : null;
+  var maxInitialDifference = hasRequiredInputs ? Math.max(primaryInitialDifference, partnerInitialDifference) : null;
+  var maxRepaymentDifference = hasRequiredInputs ? Math.max(primaryRepaymentDifference, partnerRepaymentDifference) : null;
+  var maxDifference = hasRequiredInputs ? Math.max(maxInitialDifference, maxRepaymentDifference) : null;
+  var closestDifference = hasRequiredInputs ? Math.min(maxInitialDifference, maxRepaymentDifference) : null;
+  var ownershipRatioTotal = primaryOwnershipRatio + partnerOwnershipRatio;
+  var repaymentRatioTotal = primaryRepaymentRatio + partnerRepaymentRatio;
+  var ratioTotalNeedsReview = hasRequiredInputs && (Math.abs(ownershipRatioTotal - 100) > 0.01 || Math.abs(repaymentRatioTotal - 100) > 0.01);
+  var soloLoanOwnershipRisk = hasRequiredInputs && data.loanBorrowerType === 'primary' && partnerOwnershipRatio >= 40 && partnerOwnershipRatio <= 60;
+  var unclearSupportOwnershipRisk = hasRequiredInputs && sharedFamilySupport > 0 && (primaryOwnershipRatio > 0 || partnerOwnershipRatio > 0);
+  var professionalReviewNeeded = hasRequiredInputs && (closestDifference > 20 || soloLoanOwnershipRisk || unclearSupportOwnershipRisk);
+  var differenceNeedsReview = hasRequiredInputs && (closestDifference > OWNERSHIP_CONTRIBUTION_REVIEW_THRESHOLD || ratioTotalNeedsReview || familySupportMismatch > 0);
+  var status = !hasRequiredInputs
+    ? 'check_required'
+    : (professionalReviewNeeded ? 'danger' : (differenceNeedsReview ? 'caution' : 'possible'));
+  return {
+    hasRequiredInputs: hasRequiredInputs,
+    primaryDirectContribution: primaryDirectContribution,
+    partnerDirectContribution: partnerDirectContribution,
+    primaryFamilySupport: primaryFamilySupport,
+    partnerFamilySupport: partnerFamilySupport,
+    sharedFamilySupport: sharedFamilySupport,
+    attributedFamilySupport: attributedFamilySupport,
+    expectedFamilySupport: expectedFamilySupport,
+    familySupportMismatch: familySupportMismatch,
+    primaryInitialContribution: primaryInitialContribution,
+    partnerInitialContribution: partnerInitialContribution,
+    totalInitialContribution: totalInitialContribution,
+    primaryInitialContributionRatio: primaryInitialContributionRatio,
+    partnerInitialContributionRatio: partnerInitialContributionRatio,
+    primaryRepaymentRatio: primaryRepaymentRatio,
+    partnerRepaymentRatio: partnerRepaymentRatio,
+    primaryOwnershipRatio: primaryOwnershipRatio,
+    partnerOwnershipRatio: partnerOwnershipRatio,
+    ownershipRatioTotal: ownershipRatioTotal,
+    repaymentRatioTotal: repaymentRatioTotal,
+    maxInitialDifference: maxInitialDifference,
+    maxRepaymentDifference: maxRepaymentDifference,
+    maxDifference: maxDifference,
+    closestDifference: closestDifference,
+    loanBorrowerType: data.loanBorrowerType || 'undecided',
+    status: status,
+    needsReview: status !== 'possible',
+    professionalReviewNeeded: professionalReviewNeeded,
+    soloLoanOwnershipRisk: soloLoanOwnershipRisk,
+    unclearSupportOwnershipRisk: unclearSupportOwnershipRisk,
+    reason: !hasRequiredInputs
+      ? '명의 구조를 비교할 입력이 부족합니다. 초기 투입금, 실제 예상 상환부담, 예정 명의비율을 입력하면 세 축을 나누어 볼 수 있습니다.'
+      : (professionalReviewNeeded
+        ? '초기 투입금, 장기 상환부담, 명의비율 사이 차이가 크거나 책임 구조 확인이 필요합니다. 계약 전 세무·법률 전문가 검토가 필요할 수 있습니다.'
+        : (differenceNeedsReview
+          ? '초기 투입금, 장기 상환부담, 명의비율 사이에 차이가 있습니다. 두 사람이 실제 부담과 권리의 균형을 다시 확인해보세요.'
+          : '입력값 기준으로 초기 투입금, 장기 상환부담, 명의비율의 차이가 크지 않습니다. 실제 송금흐름과 법적 책임은 별도 확인이 필요합니다.'))
+  };
+}
+
 function buildFinancingStrategy(loanResult) {
   var manualIncomeKnown = loanResult.incomeSummary.dsrIncomeJointManual !== null;
   var soloSufficient = loanResult.primarySingleDsrLimit >= loanResult.requiredLoanAmount && loanResult.requiredLoanAmount <= loanResult.safeLoanAmount;
@@ -1025,13 +1121,15 @@ function createDecisionCard(input) {
     key: card.key || '',
     title: card.title || '',
     status: card.status || 'info',
-    statusLabel: DECISION_CARD_STATUS_LABELS[card.status] || DECISION_CARD_STATUS_LABELS.info,
+    statusLabel: card.statusLabel || DECISION_CARD_STATUS_LABELS[card.status] || DECISION_CARD_STATUS_LABELS.info,
     summary: card.summary || '',
     reason: card.reason || '',
     evidence: card.evidence || [],
     blockers: card.blockers || [],
     requiredChecks: card.requiredChecks || [],
     nextActions: card.nextActions || [],
+    actionGuide: card.actionGuide || null,
+    visual: card.visual || '',
     warning: card.warning || ''
   };
 }
@@ -1077,6 +1175,25 @@ function buildDecisionCards(loanResult) {
   var income = loanResult.incomeSummary;
   var capital = loanResult.capitalSummary;
   var ownershipInput = loanResult.ownershipInput;
+  var ownershipReview = loanResult.ownershipContributionReview;
+  var loanBorrowerLabels = { primary: '본인 단독', partner: '파트너 단독', joint: '공동차주', undecided: '미정' };
+  function ratioText(value) { return value === null ? '미입력' : (Math.round(value * 10) / 10) + '%'; }
+  function differenceText(value) { return value === null ? '비교 전' : (Math.round(value * 10) / 10) + '%p'; }
+  function ownershipRatioBars(review) {
+    if (!review.hasRequiredInputs) return '<p class="ownership-bars-empty">초기 투입금, 실제 예상 상환부담, 예정 명의비율을 모두 입력하면 비교 막대가 표시됩니다.</p>';
+    function width(value) { return Math.max(Math.min(value, 100), 0); }
+    function bar(label, primary, partner) {
+      return '<div class="ownership-bar-row"><strong>' + escapeHTML(label) + '</strong>' +
+        '<div class="ownership-bar"><span class="ownership-bar-primary" style="width:' + width(primary) + '%">본인 ' + ratioText(primary) + '</span>' +
+        '<span class="ownership-bar-partner" style="width:' + width(partner) + '%">파트너 ' + ratioText(partner) + '</span></div></div>';
+    }
+    return '<div class="ownership-bars">' +
+      bar('초기 투입금 기준 비율', review.primaryInitialContributionRatio, review.partnerInitialContributionRatio) +
+      bar('장기 상환부담 기준 비율', review.primaryRepaymentRatio, review.partnerRepaymentRatio) +
+      bar('예정 명의비율', review.primaryOwnershipRatio, review.partnerOwnershipRatio) +
+      '<p>초기 투입금 기준 차이 <strong>' + differenceText(review.maxInitialDifference) + '</strong> · 장기 상환부담 기준 차이 <strong>' + differenceText(review.maxRepaymentDifference) + '</strong><br>' +
+      '두 축 중 명의비율에 더 가까운 차이가 ' + OWNERSHIP_CONTRIBUTION_REVIEW_THRESHOLD + '%p를 넘으면 다시 확인합니다.</p></div>';
+  }
   var partnerIncomeIsVariable = loanResult.job2 === 'self' || loanResult.job2 === 'freelance';
   var soloCanCoverRequired = loanResult.primarySingleDsrLimit >= loanResult.requiredLoanAmount;
   var affordabilityCanCoverRequired = loanResult.affordabilitySummary.selectedAffordabilityLoanLimit >= loanResult.requiredLoanAmount;
@@ -1087,7 +1204,7 @@ function buildDecisionCards(loanResult) {
 
   if (!partnerManualIncomeKnown && loanResult.income2 > 0) unresolvedItems.push('파트너 은행 인정소득 확인');
   if (capital.conditionalSupport > 0) unresolvedItems.push('조건부 자금의 지원·차용·증여 성격 확인');
-  if (ownershipInput.intendedOwnershipType === 'undecided') unresolvedItems.push('명의 구조와 실제 자금 기여비율 확인');
+  if (!ownershipReview.hasRequiredInputs) unresolvedItems.push('명의 구조와 실제 자금 기여비율 입력');
   if (loanResult.policyResearchBacklog.length > 0) unresolvedItems.push('최신화가 필요한 정책 데이터 공식자료 확인');
 
   var caseSummary = createDecisionCard({
@@ -1176,17 +1293,36 @@ function buildDecisionCards(loanResult) {
     createDecisionCard({
       key: 'ownership_contribution_review',
       title: '명의·자금기여 구조',
-      status: 'check_required',
-      summary: '명의 구조는 실제 자금 기여비율, 차용·증여 여부, 대출 구조에 따라 달라질 수 있습니다.',
-      reason: '현재 화면에는 당사자별 기여금과 예정 명의비율을 입력받지 않으므로 확정 권고를 만들지 않습니다.',
+      status: ownershipReview.status,
+      statusLabel: !ownershipReview.hasRequiredInputs ? '입력 부족' : (ownershipReview.professionalReviewNeeded ? '세무·법률 검토 필요' : (ownershipReview.needsReview ? '차이 있음' : '균형권')),
+      summary: ownershipReview.hasRequiredInputs
+        ? '초기 투입금, 장기 상환부담, 예정 명의비율을 분리해 비교했습니다.'
+        : '명의비율 판단에 필요한 입력값이 아직 부족합니다.',
+      reason: ownershipReview.reason,
       evidence: [
-        '본인 측 확인 자금: ' + won(ownershipInput.primaryContribution),
-        '파트너 기여금: ' + (ownershipInput.partnerContribution === null ? '미입력' : won(ownershipInput.partnerContribution)),
-        '가족 지원 예정액: ' + won(ownershipInput.familySupportAmount),
-        '예정 명의 구조: ' + ownershipInput.intendedOwnershipType
+        '본인 직접 투입금: ' + won(ownershipReview.primaryDirectContribution),
+        '파트너 직접 투입금: ' + won(ownershipReview.partnerDirectContribution),
+        '본인 측 가족 지원 예정액: ' + won(ownershipReview.primaryFamilySupport),
+        '파트너 측 가족 지원 예정액: ' + won(ownershipReview.partnerFamilySupport),
+        '공동 / 귀속 미정 가족 지원액: ' + won(ownershipReview.sharedFamilySupport),
+        '본인 초기 투입금 기준 비율: ' + ratioText(ownershipReview.primaryInitialContributionRatio),
+        '파트너 초기 투입금 기준 비율: ' + ratioText(ownershipReview.partnerInitialContributionRatio),
+        '본인 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryRepaymentRatio : null),
+        '파트너 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerRepaymentRatio : null),
+        '본인 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryOwnershipRatio : null),
+        '파트너 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerOwnershipRatio : null),
+        '최대 비율 차이: ' + differenceText(ownershipReview.maxDifference),
+        '보유 자금의 부모 지원 예정액: ' + won(ownershipReview.expectedFamilySupport),
+        '명의 구조 세부 입력의 가족 지원 합계: ' + won(ownershipReview.attributedFamilySupport),
+        '대출 명의 / 상환 주체: ' + loanBorrowerLabels[ownershipReview.loanBorrowerType]
       ],
-      requiredChecks: ['당사자별 실제 자금 기여비율', '차용·증여 여부', '예정 명의비율', '대출 명의와 상환 흐름'],
-      nextActions: ['실제 계약 전 세무 전문가에게 명의와 자금출처 구조를 확인하세요.']
+      requiredChecks: ownershipReview.hasRequiredInputs ? ['실제 송금흐름', '대출 책임 구조', '차용·증여 여부', '계약 전 전문가 확인'] : ['당사자별 초기 투입금', '실제 예상 상환부담', '예정 명의비율'],
+      nextActions: ['초기 투입금과 장기 상환부담 중 어느 축을 명의비율에 반영할지 두 사람이 대화하고, 실제 계약 전 세무·법률 전문가에게 확인하세요.'],
+      visual: ownershipRatioBars(ownershipReview),
+      warning: (ownershipReview.familySupportMismatch > 0 ? '부모 지원 예정액 총액과 명의 구조 세부 입력의 가족 지원 합계가 다릅니다. 귀속이 정해지지 않았다면 공동 / 귀속 미정 금액에 입력하세요. ' : '') +
+        (ownershipReview.sharedFamilySupport > 0 ? '공동 / 귀속 미정 가족 지원액은 초기 투입금 비율에서 참고 가정으로 절반씩 배분했습니다. ' : '') +
+        (ownershipReview.loanBorrowerType === 'primary' ? '본인 단독대출은 법적 채무 책임이 본인에게 집중될 수 있습니다. 실제 상환을 함께 하더라도 책임 구조를 별도로 확인하세요. ' : '') +
+        '입력값 기준 참고 판단이며 증여세, 법적 소유권, 대출 책임을 확정하지 않습니다.'
     })
   ];
 
@@ -1224,10 +1360,12 @@ function buildDecisionCards(loanResult) {
     createDecisionCard({
       key: 'compliance_ownership_mismatch',
       title: '명의비율과 자금기여 불일치 확인',
-      status: 'check_required',
+      status: ownershipReview.status,
+      statusLabel: !ownershipReview.hasRequiredInputs ? '입력 부족' : (ownershipReview.professionalReviewNeeded ? '세무·법률 검토 필요' : (ownershipReview.needsReview ? '차이 있음' : '균형권')),
       summary: '명의비율과 실제 자금 기여비율이 크게 다르면 세무 검토가 필요할 수 있습니다.',
-      reason: '현재 당사자별 기여비율 입력값이 없어 자동 판정하지 않습니다.',
-      requiredChecks: ['실제 자금 기여비율', '명의비율', '자금출처'],
+      reason: ownershipReview.reason,
+      evidence: ownershipReview.hasRequiredInputs ? ['초기 투입금 기준 최대 차이: ' + differenceText(ownershipReview.maxInitialDifference), '장기 상환부담 기준 최대 차이: ' + differenceText(ownershipReview.maxRepaymentDifference), '참고 검토 기준: ' + OWNERSHIP_CONTRIBUTION_REVIEW_THRESHOLD + '%p 초과'] : [],
+      requiredChecks: ['초기 투입금', '장기 상환부담', '명의비율', '자금출처', '실제 송금흐름'],
       warning: '증여세 등 세무 리스크는 실제 자금흐름 기준으로 전문가 확인이 필요합니다.'
     }),
     createDecisionCard({
@@ -1267,19 +1405,86 @@ function buildDecisionCards(loanResult) {
   ];
 
   var actionPlanCards = [
-    ['파트너 은행 인정소득 확인', !partnerManualIncomeKnown && loanResult.income2 > 0],
-    ['확정 자기자본과 조건부 자금 분리 확인', true],
-    ['가족 지원금의 지원·차용·증여 성격 확인', capital.conditionalSupport > 0],
-    ['목표 주택가격별 생활감당 비교', true],
-    ['규제지역·비규제지역별 LTV와 cap 재계산', true],
-    ['혼인신고 시점에 따른 세대·정책대출 요건 확인', true],
-    ['출산 계획이 있다면 신생아특례를 미래 후보로 관리', true]
-  ].filter(function (item) { return item[1]; }).map(function (item, index) {
+    {
+      title: '파트너 은행 인정소득 확인',
+      status: loanResult.income2 <= 0 || partnerManualIncomeKnown ? 'possible' : 'check_required',
+      task: '파트너의 실제 은행 인정소득을 확인하세요.',
+      why: '공동차주 대출한도는 입력 소득이 아니라 은행이 인정하는 소득에 따라 달라질 수 있습니다.',
+      where: '주담대 상담 은행, 대출상담사 또는 은행 사전심사. 소득금액증명, 사업자등록증, 부가세 신고자료, 원천징수영수증, 통장 입금내역 등이 필요할 수 있습니다.',
+      input: '소득 정보 > 파트너 > 은행 인정소득',
+      impact: '공동차주 DSR 한도와 최종 대출 가능 범위가 바뀔 수 있습니다.',
+      anchor: 'profile-income-section',
+      linkLabel: '소득 정보로 이동'
+    },
+    {
+      title: '부모 지원 예정액 성격 확인',
+      status: loanResult.support <= 0 || capital.conditionalSupport <= 0 ? 'possible' : 'check_required',
+      task: '부모 지원 예정액이 증여인지, 차용인지, 단순 지원인지 정리하세요.',
+      why: '지원금의 성격에 따라 자금출처 설명, 세무 검토, 명의 구조 판단이 달라질 수 있습니다.',
+      where: '세무사 상담, 홈택스 증여세 안내, 실제 송금 계획과 차용 조건 정리',
+      input: '보유 자금 > 부모 지원 예정액·성격 / 명의·자금기여 구조 입력 > 가족 지원 세부 금액',
+      impact: '확정자금·조건부자금 분리와 명의·자금기여 리스크 판단이 바뀔 수 있습니다.',
+      anchor: 'profile-capital-section',
+      linkLabel: '보유 자금으로 이동'
+    },
+    {
+      title: '명의·자금기여 구조 입력',
+      status: !ownershipReview.hasRequiredInputs ? 'check_required' : (ownershipReview.needsReview ? 'caution' : 'possible'),
+      task: '당사자별 초기 투입금, 가족 지원 세부 금액, 실제 예상 상환부담, 예정 명의비율을 입력하세요.',
+      why: '초기 투입금과 장기 상환부담, 명의비율 사이 차이가 크면 전문가 검토가 필요할 수 있습니다.',
+      where: '실제 자금조달 계획, 계약 전 세무 전문가 상담, 송금 계획',
+      input: '명의·자금기여 구조 입력',
+      impact: '명의·자금기여 구조 카드에서 비율 차이와 확인 필요 여부를 비교합니다.',
+      anchor: 'profile-ownership-section',
+      linkLabel: '명의·자금기여 입력으로 이동'
+    },
+    {
+      title: '목표가격별 생활감당 비교',
+      status: loanResult.targetProperty.price > 0 ? 'possible' : 'check_required',
+      task: '8억, 8.5억, 9억, 10억 등 목표가격을 바꿔 월상환액과 잔여 현금을 비교하세요.',
+      why: '은행 한도보다 실제 월상환 부담이 더 큰 제한이 될 수 있습니다.',
+      where: '앱의 목표 주택가격 입력과 시나리오 비교 탭',
+      input: '목표 주택 > 목표 주택가격 / 시나리오 비교',
+      impact: '생활감당 위험도와 검토 가능한 집값 범위가 바뀝니다.',
+      anchor: 'target_property_price',
+      linkLabel: '목표 주택가격으로 이동'
+    },
+    {
+      title: '규제지역·비규제지역 비교',
+      status: 'check_required',
+      task: '같은 가격에서 지역 조건을 바꿔 한도 차이를 비교하세요.',
+      why: '지역 조건이 달라지면 제도상 한도와 최종 병목이 바뀔 수 있습니다.',
+      where: '앱의 지역 입력, 금융위원회·국토교통부 공식 정책자료',
+      input: '목표 주택 > 희망 지역 / 규제지역 여부',
+      impact: 'LTV 기준 한도, 주택가격별 cap, 스트레스 DSR 적용 여부가 달라질 수 있습니다.',
+      anchor: 'region_type',
+      linkLabel: '지역 조건으로 이동'
+    },
+    {
+      title: '혼인신고 시점 확인',
+      status: 'check_required',
+      task: '혼인신고 전후의 세대 구성, 소득 합산, 무주택 판단과 정책대출 요건을 확인하세요.',
+      why: '정책대출과 주택 자격 판단은 세대 기준에 따라 달라질 수 있습니다.',
+      where: '은행 대출 상담, 마이홈·주택도시기금 정책대출 안내, 필요 시 세무·법률 전문가',
+      input: '목표 주택 > 혼인신고 상태',
+      impact: '정책대출 후보와 차주 구조 판단이 달라질 수 있습니다.',
+      anchor: 'married',
+      linkLabel: '혼인신고 상태로 이동'
+    }
+  ].map(function (item, index) {
     return createDecisionCard({
       key: 'action_plan_' + (index + 1),
-      title: (index + 1) + '. ' + item[0],
-      status: index === 0 ? 'recommended' : 'check_required',
-      summary: '확정 조언이 아니라 현재 입력값 기준의 확인 순서입니다.'
+      title: (index + 1) + '. ' + item.title,
+      status: item.status,
+      summary: item.task,
+      actionGuide: {
+        why: item.why,
+        where: item.where,
+        input: item.input,
+        impact: item.impact,
+        anchor: item.anchor,
+        linkLabel: item.linkLabel
+      }
     });
   });
 
@@ -1456,6 +1661,31 @@ function calcLoan() {
   var partnerRecognizedInput = getInput('partner_recognized_income');
   var hasNewbornWithin2Years = getSelect('has_newborn_within_2_years') === 'yes';
   var isLandTransactionPermitZone = getSelect('is_land_transaction_permit_zone') === 'yes';
+  var primaryContributionInput = document.getElementById('primary_contribution');
+  var partnerContributionInput = document.getElementById('partner_contribution');
+  var primaryRepaymentRatioInput = document.getElementById('primary_repayment_ratio');
+  var partnerRepaymentRatioInput = document.getElementById('partner_repayment_ratio');
+  var primaryOwnershipRatioInput = document.getElementById('primary_ownership_ratio');
+  var partnerOwnershipRatioInput = document.getElementById('partner_ownership_ratio');
+  var ownershipContributionReview = buildOwnershipContributionReview({
+    primaryContribution: getInput('primary_contribution'),
+    partnerContribution: getInput('partner_contribution'),
+    primaryFamilySupport: getInput('primary_family_support'),
+    partnerFamilySupport: getInput('partner_family_support'),
+    sharedFamilySupport: getInput('shared_family_support'),
+    expectedFamilySupport: support,
+    primaryRepaymentRatio: getInput('primary_repayment_ratio'),
+    partnerRepaymentRatio: getInput('partner_repayment_ratio'),
+    primaryOwnershipRatio: getInput('primary_ownership_ratio'),
+    partnerOwnershipRatio: getInput('partner_ownership_ratio'),
+    hasPrimaryContributionInput: primaryContributionInput && primaryContributionInput.value !== '',
+    hasPartnerContributionInput: partnerContributionInput && partnerContributionInput.value !== '',
+    hasPrimaryRepaymentRatioInput: primaryRepaymentRatioInput && primaryRepaymentRatioInput.value !== '',
+    hasPartnerRepaymentRatioInput: partnerRepaymentRatioInput && partnerRepaymentRatioInput.value !== '',
+    hasPrimaryOwnershipRatioInput: primaryOwnershipRatioInput && primaryOwnershipRatioInput.value !== '',
+    hasPartnerOwnershipRatioInput: partnerOwnershipRatioInput && partnerOwnershipRatioInput.value !== '',
+    loanBorrowerType: getSelect('loan_borrower_type') || 'undecided'
+  });
 
   if (income1 <= 0 && income2 <= 0) {
     alert('소득 정보를 입력해주세요.');
@@ -1567,6 +1797,9 @@ function calcLoan() {
   var conditionalRequiredLoanAmount = transactionType === 'purchase' ? Math.max(targetPrice - capitalSummary.totalPotentialCapital, 0) : 0;
   var loanLimitShortage = transactionType === 'purchase' ? Math.max(requiredLoanAmount - finalLoanLimit, 0) : 0;
   var requiredMonthlyPayment = calcMonthlyPayment(requiredLoanAmount, baseRate, loanTermYears);
+  var requiredJeonseLoanAmount = transactionType === 'jeonse' ? Math.max(targetPrice - capitalSummary.confirmedUsableCapital, 0) : 0;
+  var conditionalRequiredJeonseLoanAmount = transactionType === 'jeonse' ? Math.max(targetPrice - capitalSummary.totalPotentialCapital, 0) : 0;
+  var estimatedJeonseMonthlyInterest = transactionType === 'jeonse' ? requiredJeonseLoanAmount * baseRate / 12 : 0;
 
   // 생활 감당 가능성: 월 50만원 완충액을 남기는 보수적 권장액
   var monthlyNet = monthlyNetIncome(income1, job1) + monthlyNetIncome(income2, job2) + additionalIncomeReview.recurringCashflowIncome / 12;
@@ -1662,6 +1895,9 @@ function calcLoan() {
     jointDsrLimit: jointDsrLimit,
     requiredLoanAmount: requiredLoanAmount,
     conditionalRequiredLoanAmount: conditionalRequiredLoanAmount,
+    requiredJeonseLoanAmount: requiredJeonseLoanAmount,
+    conditionalRequiredJeonseLoanAmount: conditionalRequiredJeonseLoanAmount,
+    estimatedJeonseMonthlyInterest: estimatedJeonseMonthlyInterest,
     requiredMonthlyPayment: requiredMonthlyPayment,
     cashShortage: loanLimitShortage,
     loanLimitShortage: loanLimitShortage,
@@ -1708,15 +1944,16 @@ function calcLoan() {
     monthlyDebt: monthlyDebt,
     monthlyLiving: monthlyLiving,
     income1: income1, income2: income2, job1: job1, job2: job2,
+    ownershipContributionReview: ownershipContributionReview,
     cash: cash, support: support, familySupportType: familySupportType, weddingCost: weddingCost
   };
   state.loanResult.financingStrategy = buildFinancingStrategy(state.loanResult);
   state.loanResult.ownershipInput = {
-    primaryContribution: capitalSummary.confirmedCash,
-    partnerContribution: null,
+    primaryContribution: ownershipContributionReview.primaryInitialContribution,
+    partnerContribution: ownershipContributionReview.partnerInitialContribution,
     familySupportAmount: familySupportReview.amount,
-    intendedOwnershipType: 'undecided',
-    intendedOwnershipRatio: null
+    intendedOwnershipType: ownershipContributionReview.loanBorrowerType,
+    intendedOwnershipRatio: ownershipContributionReview.primaryOwnershipRatio
   };
   state.loanResult.decisionCards = buildDecisionCards(state.loanResult);
 
@@ -1725,6 +1962,7 @@ function calcLoan() {
     cash: cash, support: support, familySupportType: familySupportType, weddingCost: weddingCost, purchaseCosts: purchaseCosts,
     existingDebt: existingDebt, existingDebtAnnualPayment: annualDebtPayment, monthlyDebt: monthlyDebt,
     monthlyLiving: monthlyLiving, regionType: regionType, firstBuyer: firstBuyer, married: married,
+    ownershipContributionReview: ownershipContributionReview,
     targetProperty: profileInput.targetProperty,
     buyerStatus: profileInput.buyerStatus,
     incomeSummary: incomeSummary,
@@ -1741,6 +1979,12 @@ function renderLoanResult() {
 
   document.getElementById('loan-no-data').style.display = 'none';
   document.getElementById('loan-result').style.display = 'block';
+  var dealTypeMode = getDealTypeMode(r.targetProperty.transactionType);
+  if (dealTypeMode !== 'purchase') {
+    renderAlternativeDealResult(r, dealTypeMode);
+    return;
+  }
+  setPurchaseLoanResultVisibility(true);
 
   document.getElementById('res-dsr-limit').textContent = won(r.primarySingleDsrLimit);
   document.getElementById('res-dsr-note').textContent = '주 차주 1명의 소득만 반영 · 현재 정책 데이터와 입력값 기준 추정';
@@ -1780,6 +2024,94 @@ function renderLoanResult() {
   renderMarriageStrategy(r);
   renderLoanNextActions(r);
   setLoanQuickNavActive('loan-overview');
+}
+
+function setPurchaseLoanResultVisibility(visible) {
+  var quickNav = document.querySelector('.loan-quick-nav');
+  if (quickNav) quickNav.style.display = visible ? '' : 'none';
+  [
+    'loan-limit-section', 'res-cap-box', 'loan-affordability', 'loan-decision-summary',
+    'loan-financing-strategy', 'decision-cards-container', 'additional-income-decision',
+    'marriage-strategy-box', 'loan-next-actions'
+  ].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = visible ? '' : 'none';
+  });
+}
+
+function renderAlternativeDealResult(r, dealTypeMode) {
+  setPurchaseLoanResultVisibility(false);
+  var overview = document.getElementById('loan-overview');
+  if (!overview) return;
+  if (dealTypeMode === 'monthly') {
+    overview.innerHTML = '<section class="loan-overview-card monthly-overview-card"><span class="loan-section-kicker">월세 거래유형</span>' +
+      '<h3>월세 조건은 별도 확인이 필요합니다.</h3>' +
+      '<p>월세에서는 매매용 LTV와 주담대 cap으로 판단하지 않습니다. 보증금, 월세, 관리비와 생활비를 중심으로 별도 비교해야 합니다.</p>' +
+      '<div class="loan-viewable-range"><h4>이번 화면에서 확인할 점</h4><p>후보 매물 탭에서 월세 보증금과 월세를 입력해 생활 후 잔여 현금을 비교하세요.</p></div></section>';
+    return;
+  }
+  var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
+  var surplus = monthlyNet - r.estimatedJeonseMonthlyInterest - r.monthlyLiving;
+  var affordabilityStatus = surplus >= 500000 ? 'safe' : (surplus >= 0 ? 'caution' : 'danger');
+  var affordabilityLabel = { safe: '안전권', caution: '주의', danger: '위험' }[affordabilityStatus];
+  var buttimmok = r.policyLoanStatus && r.policyLoanStatus.buttimmokJeonse;
+  var buttimmokLabel = buttimmok ? (POLICY_STATUS_LABELS[buttimmok.status] || '공식 확인 필요') : '공식 확인 필요';
+  var buttimmokReason = buttimmok ? buttimmok.reason : '전세대출 정책 데이터 확인 필요';
+  overview.innerHTML = '<section class="loan-overview-card jeonse-overview-card"><span class="loan-section-kicker">전세 거래유형</span>' +
+    '<h3>전세 기준으로 다시 계산했습니다.</h3>' +
+    '<p>전세는 매매용 LTV와 주담대 cap으로 판단하지 않습니다. 보증금, 보유자금, 필요한 전세대출과 월 이자 부담을 별도로 확인하세요.</p>' +
+    '<div class="loan-overview-kpis">' +
+      '<div><span>목표 보증금</span><strong>' + won(r.targetProperty.price) + '</strong></div>' +
+      '<div><span>확정자금</span><strong>' + won(r.capitalSummary.confirmedUsableCapital) + '</strong></div>' +
+      '<div><span>조건부 자금</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong></div>' +
+      '<div><span>확정자금 기준 필요 전세대출</span><strong>' + won(r.requiredJeonseLoanAmount) + '</strong></div>' +
+      '<div><span>조건부 포함 기준 필요 전세대출</span><strong>' + won(r.conditionalRequiredJeonseLoanAmount) + '</strong></div>' +
+      '<div><span>예상 월 이자</span><strong>' + wonM(r.estimatedJeonseMonthlyInterest) + '</strong></div>' +
+      '<div><span>생활 후 월 여유</span><strong class="affordability-risk ' + affordabilityStatus + '">' + wonM(surplus) + ' · ' + affordabilityLabel + '</strong></div>' +
+    '</div>' +
+    '<div class="loan-viewable-range"><h4>전세대출 후보 · 판정 보류</h4>' +
+      '<p><strong>버팀목전세자금대출:</strong> ' + escapeHTML(buttimmokLabel) + ' · ' + escapeHTML(buttimmokReason) + '</p>' +
+      '<p>일반 전세대출, 신혼부부 전세대출 등 상품별 한도와 이자 부담은 공식 기준으로 별도 확인해야 합니다.</p></div>' +
+    '<section class="target-price-preview jeonse-deposit-preview"><h4>목표 보증금 빠른 비교</h4>' +
+      '<p class="tab-desc">슬라이더는 미리보기만 바꿉니다. 적용 버튼을 눌러야 입력값에 반영됩니다.</p>' +
+      '<label for="jeonse-deposit-preview-range">선택한 목표 보증금: <strong id="jeonse-deposit-preview-label">—</strong></label>' +
+      '<input type="range" id="jeonse-deposit-preview-range" min="500000000" max="1200000000" step="10000000" value="' + Math.max(Math.min(r.targetProperty.price, 1200000000), 500000000) + '" oninput="renderJeonseDepositPreview()" />' +
+      '<div class="target-price-preview-scale"><span>5억</span><span>8억</span><span>10억</span><span>12억</span></div>' +
+      '<div class="target-price-preview-grid" id="jeonse-deposit-preview-grid"></div>' +
+      '<p class="target-price-preview-note" id="jeonse-deposit-preview-note"></p>' +
+      '<button class="btn-secondary" type="button" onclick="applyJeonseDepositPreview()">이 보증금을 목표값에 적용</button></section>' +
+    '<p class="review-note">현재 정책 파일만으로 전세대출 실행 한도를 자동 확정하지 않습니다. 필요한 전세대출액과 예상 월 이자는 비교용 추정치입니다.</p></section>';
+  renderJeonseDepositPreview();
+}
+
+function renderJeonseDepositPreview() {
+  var range = document.getElementById('jeonse-deposit-preview-range');
+  var grid = document.getElementById('jeonse-deposit-preview-grid');
+  var label = document.getElementById('jeonse-deposit-preview-label');
+  var note = document.getElementById('jeonse-deposit-preview-note');
+  if (!range || !grid || !state.loanResult) return;
+  var preview = buildTargetPricePreview(parseFloat(range.value));
+  if (!preview || preview.dealTypeMode !== 'jeonse') return;
+  var riskLabels = { safe: '안전권', caution: '주의', danger: '위험' };
+  if (label) label.textContent = won(preview.selectedPrice);
+  grid.innerHTML = [
+    ['확정자금 기준 필요 전세대출', won(preview.requiredLoan)],
+    ['조건부 포함 기준 필요 전세대출', won(preview.conditionalRequiredLoan)],
+    ['예상 월 이자', wonM(preview.monthlyInterest)],
+    ['생활 후 월 여유', wonM(preview.surplus)]
+  ].map(function (item) {
+    return '<div><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
+  }).join('') + '<div class="target-price-preview-verdicts"><div class="' + preview.affordabilityStatus + '"><span>생활감당</span><strong>' + riskLabels[preview.affordabilityStatus] + '</strong></div>' +
+    '<div class="caution"><span>전세대출 공식 한도</span><strong>확인 필요</strong></div></div>';
+  if (note) note.textContent = preview.summaryText;
+}
+
+function applyJeonseDepositPreview() {
+  var range = document.getElementById('jeonse-deposit-preview-range');
+  var target = document.getElementById('target_property_price');
+  if (!range || !target) return;
+  target.value = Math.round(parseFloat(range.value) / MANWON);
+  calcLoan();
 }
 
 function setLoanQuickNavActive(sectionId) {
@@ -2000,9 +2332,15 @@ function renderLoanFinancingStrategy(r) {
 function renderLoanNextActions(r) {
   var container = document.getElementById('loan-next-actions');
   if (!container) return;
-  var items = r.nextActions.length ? r.nextActions : ['추가 조치 없이 시나리오 비교로 진행할 수 있습니다.'];
+  var actionPlanCards = r.decisionCards && r.decisionCards.actionPlanCards ? r.decisionCards.actionPlanCards : [];
+  var items = actionPlanCards.length
+    ? actionPlanCards.map(function (card) { return card.title.replace(/^\d+\.\s*/, '') + ': ' + card.summary; })
+    : (r.nextActions.length ? r.nextActions : ['추가 조치 없이 시나리오 비교로 진행할 수 있습니다.']);
+  var topItems = items.slice(0, 3);
   container.innerHTML = '<section class="loan-section loan-actions-section"><div class="loan-section-heading"><span class="loan-section-kicker">다음 행동</span><h3>지금 확인할 순서</h3><p>확정 조언이 아니라 실행 전 점검 순서입니다.</p></div><ol>' +
-    items.map(function (item) { return '<li>' + escapeHTML(item) + '</li>'; }).join('') + '</ol></section>';
+    topItems.map(function (item) { return '<li>' + escapeHTML(item) + '</li>'; }).join('') + '</ol>' +
+    (items.length > topItems.length ? '<p class="top-action-note">상단에는 우선 확인할 3개만 표시합니다. 상세 확인처와 입력 위치는 실행 판단 카드의 다음 액션 플랜에서 확인하세요.</p>' : '') +
+    '</section>';
 }
 
 function renderDecisionCard(card) {
@@ -2013,15 +2351,28 @@ function renderDecisionCard(card) {
       items.map(function (item) { return '<li>' + escapeHTML(item) + '</li>'; }).join('') +
       '</ul></div>';
   }
+  function renderActionGuide(guide) {
+    if (!guide) return '';
+    return '<details class="execution-action-details"><summary>어디서 확인하고 앱에 어떻게 반영하나요?</summary><dl>' +
+      '<dt>왜 필요한가</dt><dd>' + escapeHTML(guide.why) + '</dd>' +
+      '<dt>확인처</dt><dd>' + escapeHTML(guide.where) + '</dd>' +
+      '<dt>앱 입력 위치</dt><dd>' + escapeHTML(guide.input) + '</dd>' +
+      '<dt>결과 영향</dt><dd>' + escapeHTML(guide.impact) + '</dd>' +
+      '</dl>' +
+      (guide.anchor ? '<a class="execution-action-link" href="#' + escapeHTML(guide.anchor) + '" onclick="switchTab(\'tab-profile\')">' + escapeHTML(guide.linkLabel || '입력 위치로 이동') + '</a>' : '') +
+      '</details>';
+  }
   return '<article class="execution-card status-' + escapeHTML(card.status) + '">' +
     '<div class="execution-card-head"><h5>' + escapeHTML(card.title) + '</h5>' +
     '<span>' + escapeHTML(card.statusLabel) + '</span></div>' +
     (card.summary ? '<p class="execution-card-summary">' + escapeHTML(card.summary) + '</p>' : '') +
     (card.reason ? '<p>' + escapeHTML(card.reason) + '</p>' : '') +
+    card.visual +
     renderList('근거', card.evidence) +
     renderList('막힌 기준', card.blockers) +
     renderList('확인 필요', card.requiredChecks) +
     renderList('다음 행동', card.nextActions) +
+    renderActionGuide(card.actionGuide) +
     (card.warning ? '<p class="execution-card-warning">' + escapeHTML(card.warning) + '</p>' : '') +
     '</article>';
 }
@@ -2033,12 +2384,25 @@ function renderDecisionCardGroup(title, cards, open) {
     '<div class="execution-card-grid">' + cards.map(renderDecisionCard).join('') + '</div></details>';
 }
 
+function renderActionPlanSummary(cards) {
+  var counts = { possible: 0, check_required: 0, caution: 0 };
+  (cards || []).forEach(function (card) {
+    if (card.status === 'possible') counts.possible++;
+    else if (card.status === 'caution') counts.caution++;
+    else counts.check_required++;
+  });
+  return '<div class="action-plan-summary"><strong>액션플랜 진행 요약</strong>' +
+    '<span class="possible">입력 완료 ' + counts.possible + '개</span>' +
+    '<span class="check_required">확인 필요 ' + counts.check_required + '개</span>' +
+    '<span class="caution">전문가 확인 필요 ' + counts.caution + '개</span></div>';
+}
+
 function renderDecisionCards(cards) {
   var container = document.getElementById('decision-cards-container');
   if (!container || !cards) return;
   container.innerHTML = '<section class="execution-decision-section">' +
     '<div class="decision-title-row"><h3>실행 판단 카드</h3><span class="execution-card-guide">현재 입력값 기준</span></div>' +
-    '<p>자동 확정 조언이 아니라, 필요한 판단축을 골라 펼쳐보는 상세 영역입니다.</p>' +
+    '<p>자동 확정 조언이 아니라 실행 전 확인 순서입니다. 아래 항목을 확인하면 계산 결과의 신뢰도가 올라갑니다.</p>' +
     renderDecisionCardGroup('현재 입력값 요약', [cards.caseSummary], true) +
     renderDecisionCardGroup('일반 주담대 실행 경로', [cards.mortgagePathCard], true) +
     renderDecisionCardGroup('정책대출 탈락·보류 사유', cards.policyExitCards, false) +
@@ -2051,6 +2415,7 @@ function renderDecisionCards(cards) {
       renderDecisionCardGroup('위험 시도 차단', cards.complianceRiskCards, false) +
     '</div>' +
     renderDecisionCardGroup('미래 카드', cards.futureOptionCards, false) +
+    renderActionPlanSummary(cards.actionPlanCards) +
     renderDecisionCardGroup('다음 액션 플랜', cards.actionPlanCards, true) +
     (cards.unresolvedItems.length ? '<div class="execution-unresolved"><strong>아직 확인할 항목</strong><ul>' +
       cards.unresolvedItems.map(function (item) { return '<li>' + escapeHTML(item) + '</li>'; }).join('') + '</ul></div>' : '') +
@@ -2202,7 +2567,147 @@ function calcScenario() {
   };
 
   renderScenario();
+  syncTargetPricePreview();
   renderStressTest();
+}
+
+function syncTargetPricePreview() {
+  var r = state.loanResult;
+  var range = document.getElementById('target-price-preview-range');
+  if (!r || !range) return;
+  var price = r.targetProperty && r.targetProperty.price > 0 ? r.targetProperty.price : 850000000;
+  range.value = Math.max(Math.min(price, parseFloat(range.max)), parseFloat(range.min));
+  renderTargetPricePreview();
+}
+
+function buildTargetPricePreview(price) {
+  var r = state.loanResult;
+  if (!r) return null;
+  var selectedPrice = parseNonNegativeNumber(price, 0);
+  var confirmedCapital = r.capitalSummary.confirmedUsableCapital;
+  var totalPotentialCapital = r.capitalSummary.totalPotentialCapital;
+  var requiredLoan = Math.max(selectedPrice - confirmedCapital, 0);
+  var conditionalRequiredLoan = Math.max(selectedPrice - totalPotentialCapital, 0);
+  var dealTypeMode = getDealTypeMode(r.targetProperty.transactionType);
+  if (dealTypeMode === 'jeonse') {
+    var jeonseMonthlyInterest = requiredLoan * r.baseRate / 12;
+    var jeonseMonthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
+    var jeonseSurplus = jeonseMonthlyNet - jeonseMonthlyInterest - r.monthlyLiving;
+    return {
+      dealTypeMode: dealTypeMode,
+      selectedPrice: selectedPrice,
+      requiredLoan: requiredLoan,
+      conditionalRequiredLoan: conditionalRequiredLoan,
+      monthlyInterest: jeonseMonthlyInterest,
+      surplus: jeonseSurplus,
+      affordabilityStatus: jeonseSurplus >= 500000 ? 'safe' : (jeonseSurplus >= 0 ? 'caution' : 'danger'),
+      summaryText: '전세는 매매용 LTV와 주담대 cap으로 판단하지 않습니다. 필요한 전세대출액, 상품별 공식 한도, 예상 월 이자와 생활 여유를 별도로 확인하세요.'
+    };
+  }
+  if (dealTypeMode === 'monthly') {
+    return { dealTypeMode: dealTypeMode, selectedPrice: selectedPrice };
+  }
+  var ltvLimit = selectedPrice * r.ltvRate;
+  var capResult = getPurchaseMortgageCapResult(selectedPrice, r.isMetro || r.isRegulated);
+  var systemLimit = capResult.amount === null ? 0 : Math.min(ltvLimit, capResult.amount);
+  var finalLimit = Math.min(r.loanByDsr, systemLimit);
+  var monthlyPayment = calcMonthlyPayment(requiredLoan, r.baseRate, r.loanTermYears);
+  var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
+  var surplus = monthlyNet - monthlyPayment - r.monthlyLiving;
+  var confirmedShortage = Math.max(requiredLoan - finalLimit, 0);
+  var conditionalShortage = Math.max(conditionalRequiredLoan - finalLimit, 0);
+  var confirmedStatus = confirmedShortage <= 0 ? 'safe' : 'caution';
+  var conditionalStatus = conditionalShortage <= 0 ? 'safe' : 'danger';
+  var affordabilityStatus = surplus >= 500000 ? 'safe' : (surplus >= 0 ? 'caution' : 'danger');
+  var summaryStatus = confirmedStatus === 'safe'
+    ? 'safe'
+    : (conditionalStatus === 'safe' ? 'caution' : 'danger');
+  var summaryText = confirmedStatus === 'safe'
+    ? '확정자금만으로도 현재 조건 기준 한도 안에서 검토할 수 있습니다. 생활감당 상태를 함께 확인하세요.'
+    : (conditionalStatus === 'safe'
+      ? '확정자금만 기준으로는 ' + won(confirmedShortage) + ' 부족하지만, 부모 지원 예정액 등 조건부 자금을 실제 사용할 수 있다면 대출 부담이 크게 낮아집니다. 생활감당 여유와 자금출처 확인이 핵심입니다.'
+      : (affordabilityStatus === 'safe'
+        ? '부모 지원 예정액 등 조건부 자금을 모두 반영해도 현재 대출한도를 초과합니다. 다만 생활 여유가 충분하다면 조건부 자금 확인 후 목표가격 조정과 대출 구조를 함께 비교해보세요.'
+        : '부모 지원 예정액 등 조건부 자금을 모두 반영해도 현재 대출한도와 생활감당 기준을 넘습니다. 목표가격 조정, 확정자금 추가, 공동차주 인정소득 확인을 우선 검토하세요.'));
+  return {
+    dealTypeMode: dealTypeMode,
+    selectedPrice: selectedPrice,
+    requiredLoan: requiredLoan,
+    conditionalRequiredLoan: conditionalRequiredLoan,
+    monthlyPayment: monthlyPayment,
+    surplus: surplus,
+    shortage: confirmedShortage,
+    confirmedShortage: confirmedShortage,
+    conditionalShortage: conditionalShortage,
+    finalLimit: finalLimit,
+    confirmedStatus: confirmedStatus,
+    conditionalStatus: conditionalStatus,
+    affordabilityStatus: affordabilityStatus,
+    summaryStatus: summaryStatus,
+    summaryText: summaryText
+  };
+}
+
+function renderTargetPricePreview() {
+  var range = document.getElementById('target-price-preview-range');
+  var grid = document.getElementById('target-price-preview-grid');
+  var label = document.getElementById('target-price-preview-label');
+  var contextLabel = document.getElementById('target-price-preview-context-label');
+  var title = document.getElementById('target-price-preview-title');
+  var note = document.getElementById('target-price-preview-note');
+  if (!range || !grid || !state.loanResult) return;
+  var preview = buildTargetPricePreview(parseFloat(range.value));
+  var riskLabels = { safe: '안전권', caution: '주의', danger: '위험' };
+  var capitalLabels = { safe: '검토 가능', caution: '부족 · 확인 필요', danger: '현재 한도 초과' };
+  if (label) label.textContent = won(preview.selectedPrice);
+  if (contextLabel) contextLabel.textContent = preview.dealTypeMode === 'jeonse' ? '선택한 목표 보증금' : '선택한 목표가격';
+  if (title) title.textContent = preview.dealTypeMode === 'jeonse' ? '목표 보증금을 움직여보면 어떻게 바뀌나요?' : '집값을 움직여보면 어떻게 바뀌나요?';
+  if (preview.dealTypeMode === 'monthly') {
+    grid.innerHTML = '<div class="target-price-preview-verdicts"><div class="caution"><span>월세 거래유형</span><strong>보증금·월세 별도 입력 필요</strong></div></div>';
+    if (note) note.textContent = '월세에서는 매매용 LTV와 주담대 cap 위험도를 표시하지 않습니다. 후보 매물에서 보증금과 월세를 입력해 생활감당을 비교하세요.';
+    return;
+  }
+  if (preview.dealTypeMode === 'jeonse') {
+    grid.innerHTML = [
+      ['선택 보증금', won(preview.selectedPrice)],
+      ['확정자금 기준 필요 전세대출', won(preview.requiredLoan)],
+      ['조건부 포함 기준 필요 전세대출', won(preview.conditionalRequiredLoan)],
+      ['예상 월 이자', wonM(preview.monthlyInterest)],
+      ['생활 후 월 여유', wonM(preview.surplus)]
+    ].map(function (item) {
+      return '<div><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
+    }).join('') + '<div class="target-price-preview-verdicts"><div class="' + preview.affordabilityStatus + '"><span>생활감당</span><strong>' + riskLabels[preview.affordabilityStatus] + '</strong></div>' +
+      '<div class="caution"><span>전세대출 공식 한도</span><strong>확인 필요</strong></div></div>';
+    if (note) note.textContent = preview.summaryText;
+    return;
+  }
+  grid.innerHTML = [
+    ['확정자금 기준 필요대출', won(preview.requiredLoan)],
+    ['조건부 자금 포함 필요대출', won(preview.conditionalRequiredLoan)],
+    ['현재 조건 기준 한도', won(preview.finalLimit)],
+    ['예상 월 상환액', wonM(preview.monthlyPayment)],
+    ['생활 후 월 여유', wonM(preview.surplus)],
+    ['확정자금 기준 부족액', won(preview.confirmedShortage)],
+    ['조건부 포함 기준 부족액', won(preview.conditionalShortage)]
+  ].map(function (item) {
+    return '<div><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
+  }).join('') + '<div class="target-price-preview-risk ' + preview.summaryStatus + '"><span>판정 요약</span><strong>' + riskLabels[preview.summaryStatus] + '</strong></div>';
+  grid.innerHTML += '<div class="target-price-preview-verdicts">' +
+    '<div class="' + preview.confirmedStatus + '"><span>1. 확정자금 기준</span><strong>' + capitalLabels[preview.confirmedStatus] + '</strong></div>' +
+    '<div class="' + preview.conditionalStatus + '"><span>2. 조건부 자금 포함 기준</span><strong>' + capitalLabels[preview.conditionalStatus] + '</strong></div>' +
+    '<div class="' + preview.affordabilityStatus + '"><span>3. 생활감당</span><strong>' + riskLabels[preview.affordabilityStatus] + '</strong></div>' +
+    '</div>';
+  if (note) note.textContent = preview.summaryText;
+}
+
+function applyTargetPricePreview() {
+  var range = document.getElementById('target-price-preview-range');
+  var target = document.getElementById('target_property_price');
+  if (!range || !target) return;
+  target.value = Math.round(parseFloat(range.value) / MANWON);
+  calcLoan();
+  calcScenario();
+  switchTab('tab-scenario');
 }
 
 function renderScenario() {
@@ -2296,6 +2801,7 @@ function renderStressTest() {
   var ml = r.monthlyLiving;
   var stressLabel = document.getElementById('stress-rate-label');
   var stressSummary = document.getElementById('stress-rate-summary');
+  var stressImpactSummary = document.getElementById('stress-impact-summary');
   if (stressLabel) stressLabel.textContent = '+' + pct(stressAdd) + 'p';
   if (stressSummary) stressSummary.textContent = '현재 금리 ' + pct(r.baseRate) + ' + 상승폭 ' + pct(stressAdd) + 'p = 비교 금리 ' + pct(stressRate);
 
@@ -2304,6 +2810,25 @@ function renderStressTest() {
     { label: '🟡 현실', loan: s.real.loan },
     { label: '🔴 영끌', loan: s.yolo.loan }
   ];
+
+  if (stressImpactSummary) {
+    var referenceLoan = s.real.loan;
+    var referenceNow = calcMonthlyPayment(referenceLoan, r.baseRate, r.loanTermYears);
+    var referenceStress = calcMonthlyPayment(referenceLoan, stressRate, r.loanTermYears);
+    var referenceSurplusNow = monthlyNet - referenceNow - ml;
+    var referenceSurplusStress = monthlyNet - referenceStress - ml;
+    var referenceRisk = referenceSurplusStress >= 500000 ? 'safe' : (referenceSurplusStress >= 0 ? 'caution' : 'danger');
+    var riskLabels = { safe: '안전권', caution: '주의', danger: '위험' };
+    stressImpactSummary.innerHTML = [
+      ['현재 금리', pct(r.baseRate)],
+      ['스트레스 적용 금리', pct(stressRate)],
+      ['월 상환 증가', '+' + wonM(Math.max(referenceStress - referenceNow, 0))],
+      ['월 여유 변화', wonM(referenceSurplusNow) + ' → ' + wonM(referenceSurplusStress)],
+      ['위험도', riskLabels[referenceRisk]]
+    ].map(function (item, index) {
+      return '<div' + (index === 4 ? ' class="stress-impact-risk ' + referenceRisk + '"' : '') + '><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
+    }).join('');
+  }
 
   var html = '<table class="scenario-table"><thead><tr><th>구분</th><th>월 상환 (현재)</th><th>월 상환 (금리 +' + pct(stressAdd) + 'p)</th><th>월 상환 증가</th><th>잔여 현금</th><th>판정</th></tr></thead><tbody>';
   scenarios.forEach(function (sc) {

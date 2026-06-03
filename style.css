@@ -128,6 +128,38 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .form-section-wide .section-title, .form-section-wide .form-section-desc { grid-column: 1 / -1; }
+.income-person-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f2;
+  border-radius: 9px;
+  padding: 0.9rem;
+}
+.income-person-card h4 {
+  color: #33415f;
+  font-size: 13px;
+  margin: 0 0 0.75rem;
+}
+.ownership-input-section {
+  background: #fbfcff;
+  border-color: #dce4f3;
+}
+.ownership-input-section .section-title small {
+  background: #eef3ff;
+  border-radius: 10px;
+  color: #46608f;
+  font-size: 10px;
+  margin-left: 0.35rem;
+  padding: 2px 6px;
+}
+.ownership-input-heading {
+  border-bottom: 1px solid #e2e8f2;
+  color: #46608f;
+  font-size: 12px;
+  grid-column: 1 / -1;
+  margin: 0.2rem 0 0;
+  padding-bottom: 0.4rem;
+}
+.loan-detail-input-section { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .form-section-desc { color: #77808f; font-size: 11px; line-height: 1.5; margin: -0.35rem 0 0.8rem; }
 .section-title {
   font-size: 15px;
@@ -343,13 +375,14 @@ body {
 .policy-meta-grid {
   display: grid;
   gap: 0.55rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 0.55rem;
 }
 .policy-meta-grid div { background: #f7f9fc; border-radius: 7px; padding: 0.65rem; }
 .policy-meta-grid span, .policy-meta-grid strong { display: block; }
 .policy-meta-grid span { color: #888; font-size: 11px; margin-bottom: 3px; }
 .policy-meta-grid strong { color: #333; font-size: 12px; overflow-wrap: anywhere; }
+.policy-meta-note { color: #68738a; font-size: 11px; line-height: 1.5; margin: 0.65rem 0 0; }
 .policy-meta-warning { color: #a14500; font-size: 12px; margin-top: 0.7rem; }
 
 /* ── 대출 결과 리포트 구조 ── */
@@ -598,6 +631,7 @@ body {
 .loan-policy-section .decision-policy-item { background: #fafbfc; border-radius: 6px; padding: 0.55rem 0.65rem; }
 .loan-actions-section ol { margin: 0.65rem 0 0; padding-left: 1.35rem; }
 .loan-actions-section li { color: #4f596b; font-size: 13px; line-height: 1.6; margin-bottom: 0.25rem; }
+.loan-actions-section .top-action-note { color: #7a8495; font-size: 11px; margin: 0.55rem 0 0; }
 .loan-bottom-action { margin-top: 1rem; }
 
 /* ── 대출 판단 요약 ── */
@@ -751,6 +785,49 @@ body {
   margin-top: 0.6rem;
   padding: 0.5rem;
 }
+.execution-action-details {
+  background: #f8fafc;
+  border-radius: 6px;
+  margin-top: 0.65rem;
+  padding: 0.55rem;
+}
+.execution-action-details summary { color: #46608f; cursor: pointer; font-size: 11px; font-weight: 750; }
+.execution-action-details dl { margin: 0.45rem 0 0; }
+.execution-action-details dt { color: #33415f; font-size: 11px; font-weight: 750; margin-top: 0.4rem; }
+.execution-action-details dd { color: #68738a; font-size: 11px; line-height: 1.5; margin: 0.15rem 0 0; }
+.execution-action-link {
+  color: #1a3a8a;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 750;
+  margin-top: 0.45rem;
+  text-decoration: none;
+}
+.execution-action-link:hover { text-decoration: underline; }
+.action-plan-summary {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e3e7ee;
+  border-radius: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  padding: 0.7rem;
+}
+.action-plan-summary strong { color: #33415f; font-size: 12px; margin-right: 0.25rem; }
+.action-plan-summary span { border-radius: 14px; font-size: 11px; font-weight: 700; padding: 3px 8px; }
+.action-plan-summary .possible { background: #e8f5e9; color: #2e7d32; }
+.action-plan-summary .check_required { background: #fff8e1; color: #e65100; }
+.action-plan-summary .caution { background: #ffebee; color: #c62828; }
+.ownership-bars { background: #f8fafc; border-radius: 7px; margin-top: 0.65rem; padding: 0.6rem; }
+.ownership-bar-row + .ownership-bar-row { margin-top: 0.6rem; }
+.ownership-bar-row > strong { color: #33415f; display: block; font-size: 11px; margin-bottom: 0.25rem; }
+.ownership-bar { background: #edf1f7; border-radius: 12px; display: flex; min-height: 22px; overflow: hidden; }
+.ownership-bar span { align-items: center; display: flex; font-size: 10px; font-weight: 700; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; }
+.ownership-bar-primary { background: #5577b7; color: #fff; }
+.ownership-bar-partner { background: #efb65b; color: #654300; }
+.ownership-bars p, .ownership-bars-empty { color: #7a8495; font-size: 11px; line-height: 1.5; margin: 0.55rem 0 0; }
 .execution-card-group {
   background: #fff;
   border: 1px solid #e8e7e2;
@@ -962,6 +1039,36 @@ body {
 .stress-wrap input[type="range"] { accent-color: #1a3a8a; cursor: pointer; width: 100%; }
 .stress-range-scale { color: #888; display: flex; font-size: 11px; justify-content: space-between; margin: 0.25rem 0 0.65rem; }
 .stress-rate-summary { color: #526079; font-size: 12px; margin: 0 0 0.75rem; }
+.target-price-preview { margin-top: 1.25rem; }
+.target-price-preview-head { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; }
+.target-price-preview-head .section-title { margin: 0.25rem 0; }
+.target-price-preview label { color: #555; display: block; font-size: 13px; font-weight: 600; margin: 0.85rem 0 0.55rem; }
+.target-price-preview input[type="range"] { accent-color: #1a3a8a; cursor: pointer; width: 100%; }
+.target-price-preview-scale { color: #888; display: flex; font-size: 11px; justify-content: space-between; margin-top: 0.25rem; }
+.target-price-preview-grid, .stress-impact-grid { display: grid; gap: 0.55rem; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0.8rem; }
+.target-price-preview-grid div, .stress-impact-grid div { background: #f8fafc; border-radius: 7px; padding: 0.65rem; }
+.target-price-preview-grid span, .target-price-preview-grid strong, .stress-impact-grid span, .stress-impact-grid strong { display: block; }
+.target-price-preview-grid span, .stress-impact-grid span { color: #7a8495; font-size: 11px; margin-bottom: 0.2rem; }
+.target-price-preview-grid strong, .stress-impact-grid strong { color: #33415f; font-size: 13px; overflow-wrap: anywhere; }
+.target-price-preview-risk.safe strong, .stress-impact-risk.safe strong { color: #2e7d32; }
+.target-price-preview-risk.caution strong, .stress-impact-risk.caution strong { color: #e65100; }
+.target-price-preview-risk.danger strong, .stress-impact-risk.danger strong { color: #c62828; }
+.target-price-preview-verdicts {
+  display: grid;
+  gap: 0.55rem;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 !important;
+}
+.target-price-preview-verdicts div { border-left: 3px solid #9ca3af; }
+.target-price-preview-verdicts .safe { border-left-color: #43a047; }
+.target-price-preview-verdicts .caution { border-left-color: #fb8c00; }
+.target-price-preview-verdicts .danger { border-left-color: #e53935; }
+.target-price-preview-verdicts .safe strong { color: #2e7d32; }
+.target-price-preview-verdicts .caution strong { color: #e65100; }
+.target-price-preview-verdicts .danger strong { color: #c62828; }
+.target-price-preview-note { color: #68738a; font-size: 12px; line-height: 1.55; margin: 0.7rem 0 0; }
+.stress-impact-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 0.75rem; }
 #stress-result {
   background: #fff;
   border-radius: 12px;
@@ -1100,6 +1207,10 @@ body {
   .loan-quick-nav strong { display: block; margin: 0 0 0.35rem 0.15rem; }
   .loan-limit-rule-grid, .loan-limit-compare, .loan-dsr-help { grid-template-columns: 1fr; }
   .loan-term-help-grid, .loan-input-map { grid-template-columns: 1fr; }
+  .target-price-preview-grid, .stress-impact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .target-price-preview-verdicts { grid-template-columns: 1fr; }
+  .target-price-preview-head { display: block; }
+  .target-price-preview-head .btn-secondary { margin-top: 0.65rem; width: 100%; }
   .affordability-compare-grid { grid-template-columns: 1fr; }
   .loan-section { padding: 0.9rem; }
   #app-main { padding: 1rem 1rem 4rem; }

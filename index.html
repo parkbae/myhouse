@@ -136,65 +136,65 @@
         </div>
       </div>
 
-      <!-- 본인 소득 -->
-      <div class="form-section">
-        <h3 class="section-title">👤 2. 소득 정보 · 본인</h3>
+      <!-- 소득 정보 -->
+      <div class="form-section form-section-wide income-section" id="profile-income-section">
+        <h3 class="section-title">👤 2. 소득 정보</h3>
         <p class="form-section-desc">대출한도는 소득으로 갚을 수 있는 범위에서 제한됩니다.</p>
-        <div class="form-row">
-          <label>연소득 (세전)</label>
-          <div class="input-with-unit">
-            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income1" placeholder="예: 5400" oninput="onProfileChange()" />
-            <span class="unit">만원</span>
+        <div class="income-person-card">
+          <h4>본인</h4>
+          <div class="form-row">
+            <label>연소득 (세전)</label>
+            <div class="input-with-unit">
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income1" placeholder="예: 5400" oninput="onProfileChange()" />
+              <span class="unit">만원</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>직종</label>
+            <select id="job1" onchange="onProfileChange()">
+              <option value="employee">직장인 (근로소득)</option>
+              <option value="self">자영업자</option>
+              <option value="freelance">프리랜서</option>
+            </select>
+          </div>
+          <div class="form-row" id="row-income1-note" style="display:none">
+            <div class="warn-note">⚠️ 자영업자/프리랜서는 실제 은행 심사 시 인정소득이 낮아질 수 있습니다. 입력 소득의 70~80% 기준으로 보수 계산합니다.</div>
           </div>
         </div>
-        <div class="form-row">
-          <label>직종</label>
-          <select id="job1" onchange="onProfileChange()">
-            <option value="employee">직장인 (근로소득)</option>
-            <option value="self">자영업자</option>
-            <option value="freelance">프리랜서</option>
-          </select>
-        </div>
-        <div class="form-row" id="row-income1-note" style="display:none">
-          <div class="warn-note">⚠️ 자영업자/프리랜서는 실제 은행 심사 시 인정소득이 낮아질 수 있습니다. 입력 소득의 70~80% 기준으로 보수 계산합니다.</div>
-        </div>
-      </div>
-
-      <!-- 파트너 소득 -->
-      <div class="form-section">
-        <h3 class="section-title">👤 2. 소득 정보 · 파트너</h3>
-        <p class="form-section-desc">둘이 같이 빌리는 경우 파트너 소득의 은행 인정 범위를 함께 확인합니다.</p>
-        <div class="form-row">
-          <label>연소득 (세전)</label>
-          <div class="input-with-unit">
-            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income2" placeholder="예: 4000" oninput="onProfileChange()" />
-            <span class="unit">만원</span>
+        <div class="income-person-card">
+          <h4>파트너</h4>
+          <div class="form-row">
+            <label>연소득 (세전)</label>
+            <div class="input-with-unit">
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="income2" placeholder="예: 4000" oninput="onProfileChange()" />
+              <span class="unit">만원</span>
+            </div>
+            <div class="form-help">둘이 같이 빌릴 때 대출한도에 영향을 줄 수 있습니다. 프리랜서·자영업자 소득은 은행에서 입력값보다 낮게 인정될 수 있습니다.</div>
           </div>
-          <div class="form-help">파트너 소득은 둘이 같이 대출받을 때 한도에 영향을 줄 수 있습니다. 프리랜서·자영업자 소득은 은행에서 입력값보다 낮게 인정될 수 있습니다.</div>
-        </div>
-        <div class="form-row">
-          <label>직종</label>
-          <select id="job2" onchange="onProfileChange()">
-            <option value="employee">직장인 (근로소득)</option>
-            <option value="self">자영업자</option>
-            <option value="freelance">프리랜서</option>
-          </select>
-        </div>
-        <div class="form-row" id="row-income2-note" style="display:none">
-          <div class="warn-note">⚠️ 자영업자/프리랜서는 실제 은행 심사 시 인정소득이 낮아질 수 있습니다. 입력 소득의 70~80% 기준으로 보수 계산합니다.</div>
-        </div>
-        <div class="form-row">
-          <label>파트너 은행 인정소득</label>
-          <div class="input-with-unit">
-            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
-            <span class="unit">만원/년</span>
+          <div class="form-row">
+            <label>직종</label>
+            <select id="job2" onchange="onProfileChange()">
+              <option value="employee">직장인 (근로소득)</option>
+              <option value="self">자영업자</option>
+              <option value="freelance">프리랜서</option>
+            </select>
           </div>
-          <div class="form-help">은행이 실제 심사에서 인정해주는 파트너 소득입니다. 확인 후 입력하면 둘이 같이 빌릴 때 한도를 더 현실적으로 볼 수 있습니다.</div>
+          <div class="form-row" id="row-income2-note" style="display:none">
+            <div class="warn-note">⚠️ 자영업자/프리랜서는 실제 은행 심사 시 인정소득이 낮아질 수 있습니다. 입력 소득의 70~80% 기준으로 보수 계산합니다.</div>
+          </div>
+          <div class="form-row">
+            <label>파트너 은행 인정소득</label>
+            <div class="input-with-unit">
+              <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_recognized_income" placeholder="은행 확인 후 입력" oninput="onProfileChange()" />
+              <span class="unit">만원/년</span>
+            </div>
+            <div class="form-help">은행이 실제 심사에서 인정하는 파트너 소득입니다. 확인 후 입력하면 공동차주 한도를 더 현실적으로 볼 수 있습니다.</div>
+          </div>
         </div>
       </div>
 
       <!-- 자산/부채 -->
-      <div class="form-section">
+      <div class="form-section" id="profile-capital-section">
         <h3 class="section-title">💰 3. 보유 자금</h3>
         <p class="form-section-desc">내 돈과 가족 지원 예정액을 분리해서 봅니다. 확정된 돈과 확인이 필요한 돈은 결과에서 따로 표시됩니다.</p>
         <div class="form-row">
@@ -260,8 +260,91 @@
         </div>
       </div>
 
+      <!-- 명의·자금기여 -->
+      <div class="form-section form-section-wide ownership-input-section" id="profile-ownership-section">
+        <h3 class="section-title">🤝 명의·자금기여 구조 입력 <small>선택 입력</small></h3>
+        <p class="form-section-desc">초기 투입금, 가족 지원금, 대출 책임, 실제 상환 비율을 나누어 봅니다. 명의비율을 확정하는 조언이 아니라 두 사람이 대화하고 전문가에게 확인할 기준을 만드는 참고자료입니다.</p>
+        <h4 class="ownership-input-heading">A. 초기 투입금</h4>
+        <div class="form-row">
+          <label>본인 직접 투입금</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="primary_contribution" placeholder="예: 12000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>파트너 직접 투입금</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_contribution" placeholder="예: 0" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>본인 측 가족 지원 예정액</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="primary_family_support" placeholder="예: 3000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>파트너 측 가족 지원 예정액</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="partner_family_support" placeholder="예: 2000" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>공동 / 귀속 미정 가족 지원액</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" inputmode="numeric" pattern="[0-9]*" id="shared_family_support" placeholder="예: 0" oninput="onProfileChange()" />
+            <span class="unit">만원</span>
+          </div>
+          <div class="form-help">귀속이 정해지지 않았다면 여기에 입력하세요. 초기 투입금 비율 비교에서는 참고 가정으로 절반씩 배분합니다.</div>
+        </div>
+        <h4 class="ownership-input-heading">B. 대출 책임 구조</h4>
+        <div class="form-row">
+          <label>대출 신청 구조</label>
+          <select id="loan_borrower_type" onchange="onProfileChange()">
+            <option value="undecided">미정</option>
+            <option value="primary">본인 단독</option>
+            <option value="joint">공동차주</option>
+            <option value="partner">파트너 단독</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>실제 예상 상환부담 · 본인</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" max="100" inputmode="decimal" id="primary_repayment_ratio" placeholder="예: 50" oninput="onProfileChange()" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>실제 예상 상환부담 · 파트너</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" max="100" inputmode="decimal" id="partner_repayment_ratio" placeholder="예: 50" oninput="onProfileChange()" />
+            <span class="unit">%</span>
+          </div>
+          <div class="form-help">대출 명의와 실제 상환부담 비율은 다를 수 있습니다. 단독대출이면 법적 채무 책임이 한 사람에게 집중될 수 있습니다.</div>
+        </div>
+        <h4 class="ownership-input-heading">C. 예정 명의비율</h4>
+        <div class="form-row">
+          <label>예정 명의비율 · 본인</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" max="100" inputmode="decimal" id="primary_ownership_ratio" placeholder="예: 50" oninput="onProfileChange()" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>예정 명의비율 · 파트너</label>
+          <div class="input-with-unit">
+            <input type="number" min="0" max="100" inputmode="decimal" id="partner_ownership_ratio" placeholder="예: 50" oninput="onProfileChange()" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 대출 상세 -->
-      <div class="form-section">
+      <div class="form-section form-section-wide loan-detail-input-section">
         <h3 class="section-title">🧮 5. 대출 상세</h3>
         <p class="form-section-desc">금리와 기간은 월상환액과 생활감당 한도에 직접 영향을 줍니다.</p>
         <div class="form-row">
@@ -449,6 +532,23 @@
       </div>
       <div class="scenario-capital-note" id="scenario-capital-note"></div>
 
+      <!-- 목표가격 미리보기 -->
+      <section class="target-price-preview card-box">
+        <div class="target-price-preview-head">
+          <div>
+            <span class="loan-section-kicker">빠른 비교</span>
+            <h3 class="section-title" id="target-price-preview-title">집값을 움직여보면 어떻게 바뀌나요?</h3>
+            <p class="tab-desc">슬라이더는 미리보기만 바꿉니다. 아래 버튼을 눌러야 목표 주택가격 입력에 반영됩니다.</p>
+          </div>
+          <button class="btn-secondary" type="button" onclick="applyTargetPricePreview()">이 가격을 목표가격에 적용</button>
+        </div>
+        <label for="target-price-preview-range"><span id="target-price-preview-context-label">선택한 목표가격</span>: <strong id="target-price-preview-label">—</strong></label>
+        <input type="range" id="target-price-preview-range" min="500000000" max="1200000000" step="10000000" value="850000000" oninput="renderTargetPricePreview()" />
+        <div class="target-price-preview-scale"><span>5억</span><span>8억</span><span>10억</span><span>12억</span></div>
+        <div class="target-price-preview-grid" id="target-price-preview-grid"></div>
+        <p class="target-price-preview-note" id="target-price-preview-note"></p>
+      </section>
+
       <!-- 선택지별 월 현금흐름 -->
       <h3 class="section-title" style="margin-top:2rem">월 현금흐름 시뮬레이션</h3>
       <div class="cashflow-grid" id="cashflow-grid"></div>
@@ -460,6 +560,7 @@
         <input type="range" id="stress-rate-range" min="0" max="0.03" step="0.0025" value="0.02" oninput="renderStressTest()" />
         <div class="stress-range-scale"><span>현재 금리</span><span>+1%p</span><span>+2%p</span><span>+3%p</span></div>
         <p class="stress-rate-summary" id="stress-rate-summary"></p>
+        <div class="stress-impact-grid" id="stress-impact-summary"></div>
         <div id="stress-result"></div>
       </div>
 
