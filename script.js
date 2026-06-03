@@ -1115,6 +1115,33 @@ function buildFinancingStrategy(loanResult) {
   ];
 }
 
+function getLoanResultDealType(result) {
+  if (!result) return 'purchase';
+  return getDealTypeMode(result.dealType || (result.targetProperty && result.targetProperty.transactionType));
+}
+
+function buildOwnershipOrContractReview(dealType, ownershipReview) {
+  var review = ownershipReview || {};
+  var result = Object.assign({}, review);
+  result.dealType = dealType;
+  if (dealType === 'jeonse') {
+    result.label = '계약자·보증금 기여 구조';
+    result.summaryLabel = '계약자와 보증금 부담 구조를 중심으로 확인합니다.';
+    result.requiredChecks = ['계약자', '보증금 송금흐름', '보증금 기여 비율', '반환 책임'];
+    return result;
+  }
+  if (dealType === 'monthly') {
+    result.label = '계약자·보증금·월세 부담 구조';
+    result.summaryLabel = '계약자, 보증금, 월세 부담 구조를 중심으로 확인합니다.';
+    result.requiredChecks = ['계약자', '보증금 부담', '월세 부담', '관리비 부담'];
+    return result;
+  }
+  result.label = '명의·자금기여 구조';
+  result.summaryLabel = '명의와 자금기여 구조를 중심으로 확인합니다.';
+  result.requiredChecks = ['실제 송금흐름', '대출 책임 구조', '차용·증여 여부', '계약 전 전문가 확인'];
+  return result;
+}
+
 function createDecisionCard(input) {
   var card = input || {};
   return {
@@ -1172,10 +1199,12 @@ function buildPolicyExitDecisionCards(loanResult) {
 }
 
 function buildDecisionCards(loanResult) {
+  var dealType = getLoanResultDealType(loanResult);
   var income = loanResult.incomeSummary;
   var capital = loanResult.capitalSummary;
   var ownershipInput = loanResult.ownershipInput;
   var ownershipReview = loanResult.ownershipContributionReview;
+  var ownershipOrContractReview = loanResult.ownershipOrContractReview || buildOwnershipOrContractReview(dealType, ownershipReview);
   var loanBorrowerLabels = { primary: '본인 단독', partner: '파트너 단독', joint: '공동차주', undecided: '미정' };
   function ratioText(value) { return value === null ? '미입력' : (Math.round(value * 10) / 10) + '%'; }
   function differenceText(value) { return value === null ? '비교 전' : (Math.round(value * 10) / 10) + '%p'; }
@@ -1204,7 +1233,9 @@ function buildDecisionCards(loanResult) {
 
   if (!partnerManualIncomeKnown && loanResult.income2 > 0) unresolvedItems.push('파트너 은행 인정소득 확인');
   if (capital.conditionalSupport > 0) unresolvedItems.push('조건부 자금의 지원·차용·증여 성격 확인');
-  if (!ownershipReview.hasRequiredInputs) unresolvedItems.push('명의 구조와 실제 자금 기여비율 입력');
+  if (!ownershipReview.hasRequiredInputs) {
+    unresolvedItems.push(dealType === 'purchase' ? '명의 구조와 실제 자금 기여비율 입력' : ownershipOrContractReview.label + ' 입력');
+  }
   if (loanResult.policyResearchBacklog.length > 0) unresolvedItems.push('최신화가 필요한 정책 데이터 공식자료 확인');
 
   var caseSummary = createDecisionCard({
@@ -1289,36 +1320,56 @@ function buildDecisionCards(loanResult) {
     })
   ];
 
+  var ownershipCardTitle = ownershipOrContractReview.label || '명의·자금기여 구조';
+  var ownershipCardSummary = dealType === 'purchase'
+    ? (ownershipReview.hasRequiredInputs
+      ? '초기 투입금, 장기 상환부담, 예정 명의비율을 분리해 비교했습니다.'
+      : '명의비율 판단에 필요한 입력값이 아직 부족합니다.')
+    : (ownershipReview.hasRequiredInputs
+      ? ownershipOrContractReview.summaryLabel + ' 기존 명의 입력값은 참고용으로만 봅니다.'
+      : ownershipOrContractReview.label + ' 판단에 필요한 입력값이 아직 부족합니다.');
+  var ownershipCardEvidence = [
+    '본인 직접 투입금: ' + won(ownershipReview.primaryDirectContribution),
+    '파트너 직접 투입금: ' + won(ownershipReview.partnerDirectContribution),
+    '본인 측 가족 지원 예정액: ' + won(ownershipReview.primaryFamilySupport),
+    '파트너 측 가족 지원 예정액: ' + won(ownershipReview.partnerFamilySupport),
+    '공동 / 귀속 미정 가족 지원액: ' + won(ownershipReview.sharedFamilySupport),
+    '본인 초기 투입금 기준 비율: ' + ratioText(ownershipReview.primaryInitialContributionRatio),
+    '파트너 초기 투입금 기준 비율: ' + ratioText(ownershipReview.partnerInitialContributionRatio),
+    '본인 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryRepaymentRatio : null),
+    '파트너 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerRepaymentRatio : null)
+  ];
+  if (dealType === 'purchase') {
+    ownershipCardEvidence = ownershipCardEvidence.concat([
+      '본인 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryOwnershipRatio : null),
+      '파트너 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerOwnershipRatio : null),
+      '최대 비율 차이: ' + differenceText(ownershipReview.maxDifference)
+    ]);
+  } else {
+    ownershipCardEvidence = ownershipCardEvidence.concat([
+      '계약 구조 참고: ' + ownershipCardTitle,
+      '예정 명의비율 입력값은 전세/월세 핵심 결론으로 사용하지 않음'
+    ]);
+  }
+  ownershipCardEvidence = ownershipCardEvidence.concat([
+    '보유 자금의 부모 지원 예정액: ' + won(ownershipReview.expectedFamilySupport),
+    '명의 구조 세부 입력의 가족 지원 합계: ' + won(ownershipReview.attributedFamilySupport),
+    '대출 명의 / 상환 주체: ' + loanBorrowerLabels[ownershipReview.loanBorrowerType]
+  ]);
   var ownershipStructureCards = [
     createDecisionCard({
       key: 'ownership_contribution_review',
-      title: '명의·자금기여 구조',
+      title: ownershipCardTitle,
       status: ownershipReview.status,
       statusLabel: !ownershipReview.hasRequiredInputs ? '입력 부족' : (ownershipReview.professionalReviewNeeded ? '세무·법률 검토 필요' : (ownershipReview.needsReview ? '차이 있음' : '균형권')),
-      summary: ownershipReview.hasRequiredInputs
-        ? '초기 투입금, 장기 상환부담, 예정 명의비율을 분리해 비교했습니다.'
-        : '명의비율 판단에 필요한 입력값이 아직 부족합니다.',
-      reason: ownershipReview.reason,
-      evidence: [
-        '본인 직접 투입금: ' + won(ownershipReview.primaryDirectContribution),
-        '파트너 직접 투입금: ' + won(ownershipReview.partnerDirectContribution),
-        '본인 측 가족 지원 예정액: ' + won(ownershipReview.primaryFamilySupport),
-        '파트너 측 가족 지원 예정액: ' + won(ownershipReview.partnerFamilySupport),
-        '공동 / 귀속 미정 가족 지원액: ' + won(ownershipReview.sharedFamilySupport),
-        '본인 초기 투입금 기준 비율: ' + ratioText(ownershipReview.primaryInitialContributionRatio),
-        '파트너 초기 투입금 기준 비율: ' + ratioText(ownershipReview.partnerInitialContributionRatio),
-        '본인 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryRepaymentRatio : null),
-        '파트너 장기 상환부담 기준 비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerRepaymentRatio : null),
-        '본인 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.primaryOwnershipRatio : null),
-        '파트너 예정 명의비율: ' + ratioText(ownershipReview.hasRequiredInputs ? ownershipReview.partnerOwnershipRatio : null),
-        '최대 비율 차이: ' + differenceText(ownershipReview.maxDifference),
-        '보유 자금의 부모 지원 예정액: ' + won(ownershipReview.expectedFamilySupport),
-        '명의 구조 세부 입력의 가족 지원 합계: ' + won(ownershipReview.attributedFamilySupport),
-        '대출 명의 / 상환 주체: ' + loanBorrowerLabels[ownershipReview.loanBorrowerType]
-      ],
-      requiredChecks: ownershipReview.hasRequiredInputs ? ['실제 송금흐름', '대출 책임 구조', '차용·증여 여부', '계약 전 전문가 확인'] : ['당사자별 초기 투입금', '실제 예상 상환부담', '예정 명의비율'],
-      nextActions: ['초기 투입금과 장기 상환부담 중 어느 축을 명의비율에 반영할지 두 사람이 대화하고, 실제 계약 전 세무·법률 전문가에게 확인하세요.'],
-      visual: ownershipRatioBars(ownershipReview),
+      summary: ownershipCardSummary,
+      reason: dealType === 'purchase' ? ownershipReview.reason : ownershipOrContractReview.summaryLabel,
+      evidence: ownershipCardEvidence,
+      requiredChecks: ownershipReview.hasRequiredInputs ? ownershipOrContractReview.requiredChecks : (dealType === 'purchase' ? ['당사자별 초기 투입금', '실제 예상 상환부담', '예정 명의비율'] : ownershipOrContractReview.requiredChecks),
+      nextActions: [dealType === 'purchase'
+        ? '초기 투입금과 장기 상환부담 중 어느 축을 명의비율에 반영할지 두 사람이 대화하고, 실제 계약 전 세무·법률 전문가에게 확인하세요.'
+        : '계약자와 실제 보증금·월세 부담 흐름을 계약 전 별도로 확인하세요.'],
+      visual: dealType === 'purchase' ? ownershipRatioBars(ownershipReview) : '',
       warning: (ownershipReview.familySupportMismatch > 0 ? '부모 지원 예정액 총액과 명의 구조 세부 입력의 가족 지원 합계가 다릅니다. 귀속이 정해지지 않았다면 공동 / 귀속 미정 금액에 입력하세요. ' : '') +
         (ownershipReview.sharedFamilySupport > 0 ? '공동 / 귀속 미정 가족 지원액은 초기 투입금 비율에서 참고 가정으로 절반씩 배분했습니다. ' : '') +
         (ownershipReview.loanBorrowerType === 'primary' ? '본인 단독대출은 법적 채무 책임이 본인에게 집중될 수 있습니다. 실제 상환을 함께 하더라도 책임 구조를 별도로 확인하세요. ' : '') +
@@ -1428,15 +1479,15 @@ function buildDecisionCards(loanResult) {
       linkLabel: '보유 자금으로 이동'
     },
     {
-      title: '명의·자금기여 구조 입력',
+      title: ownershipCardTitle + ' 입력',
       status: !ownershipReview.hasRequiredInputs ? 'check_required' : (ownershipReview.needsReview ? 'caution' : 'possible'),
-      task: '당사자별 초기 투입금, 가족 지원 세부 금액, 실제 예상 상환부담, 예정 명의비율을 입력하세요.',
-      why: '초기 투입금과 장기 상환부담, 명의비율 사이 차이가 크면 전문가 검토가 필요할 수 있습니다.',
+      task: dealType === 'purchase' ? '당사자별 초기 투입금, 가족 지원 세부 금액, 실제 예상 상환부담, 예정 명의비율을 입력하세요.' : '계약자와 보증금·월세 부담 구조를 확인할 참고 입력을 정리하세요.',
+      why: dealType === 'purchase' ? '초기 투입금과 장기 상환부담, 명의비율 사이 차이가 크면 전문가 검토가 필요할 수 있습니다.' : '전세/월세는 명의비율보다 계약자와 실제 부담·반환 책임이 핵심입니다.',
       where: '실제 자금조달 계획, 계약 전 세무 전문가 상담, 송금 계획',
-      input: '명의·자금기여 구조 입력',
-      impact: '명의·자금기여 구조 카드에서 비율 차이와 확인 필요 여부를 비교합니다.',
+      input: ownershipCardTitle + ' 입력',
+      impact: ownershipCardTitle + ' 카드에서 확인 필요 여부를 비교합니다.',
       anchor: 'profile-ownership-section',
-      linkLabel: '명의·자금기여 입력으로 이동'
+      linkLabel: ownershipCardTitle + ' 입력으로 이동'
     },
     {
       title: '목표가격별 생활감당 비교',
@@ -1489,6 +1540,8 @@ function buildDecisionCards(loanResult) {
   });
 
   return {
+    dealType: dealType,
+    ownershipStructureLabel: ownershipCardTitle,
     caseSummary: caseSummary,
     policyExitCards: policyExitCards,
     mortgagePathCard: mortgagePathCard,
@@ -1877,8 +1930,80 @@ function calcLoan() {
     nextActions.push('제도상 가능액과 별개로 월 상환 부담을 낮추는 구조를 검토하세요.');
   }
 
+  var monthlySurplusAfterJeonseInterest = monthlyNet - estimatedJeonseMonthlyInterest - monthlyLiving;
+  var jeonseAffordabilityStatus = monthlySurplusAfterJeonseInterest >= 500000
+    ? 'safe'
+    : (monthlySurplusAfterJeonseInterest >= 0 ? 'caution' : 'danger');
+  var ownershipOrContractReview = buildOwnershipOrContractReview(transactionType, ownershipContributionReview);
+  var commonResult = {
+    input: profileInput,
+    incomeSummary: incomeSummary,
+    capitalSummary: capitalSummary,
+    policyMeta: {
+      primaryPath: primaryLoanPath.primaryPath,
+      primaryPathReason: primaryLoanPath.reason,
+      priceBand: primaryLoanPath.priceBand,
+      policyResearchBacklog: buildPolicyResearchBacklog(policyLoanStatus)
+    },
+    additionalIncomeReview: additionalIncomeReview,
+    actionPlan: nextActions,
+    ownershipOrContractReview: ownershipOrContractReview
+  };
+  var purchaseResult = transactionType === 'purchase' ? {
+    targetPrice: targetPrice,
+    ltvRate: ltvRate,
+    ltvLimit: ltvLimit,
+    purchaseMortgageCap: purchaseMortgageCap,
+    purchaseMortgageCapStatus: capResult.status,
+    purchaseMortgageCapLabel: capResult.label,
+    dsrLimit: loanByDsr,
+    stressDsrLimit: jointConservativeDsrLimit,
+    finalLoanLimit: finalLoanLimit,
+    finalRecommendedLoan: finalRecommendedLoan,
+    loanLimitBottleneck: loanLimitBottleneck,
+    requiredLoanByConfirmedCapital: requiredLoanAmount,
+    requiredLoanByConditionalCapital: conditionalRequiredLoanAmount,
+    monthlyPayment: requiredMonthlyPayment,
+    affordabilitySummary: affordabilitySummary,
+    purchasePolicyCandidates: {
+      didimdol: policyLoanStatus.didimdol,
+      bogeumjari: policyLoanStatus.bogeumjari,
+      newbornSpecial: policyLoanStatus.newbornSpecial
+    }
+  } : null;
+  var jeonseResult = transactionType === 'jeonse' ? {
+    depositAmount: targetPrice,
+    confirmedCapital: capitalSummary.confirmedUsableCapital,
+    conditionalCapital: capitalSummary.conditionalUsableCapital,
+    totalPotentialCapital: capitalSummary.totalPotentialCapital,
+    requiredJeonseLoanByConfirmedCapital: requiredJeonseLoanAmount,
+    requiredJeonseLoanByConditionalCapital: conditionalRequiredJeonseLoanAmount,
+    estimatedJeonseMonthlyInterest: estimatedJeonseMonthlyInterest,
+    monthlySurplusAfterInterest: monthlySurplusAfterJeonseInterest,
+    jeonseAffordabilityStatus: jeonseAffordabilityStatus,
+    jeonsePolicyCandidates: {
+      buttimmokJeonse: policyLoanStatus.buttimmokJeonse
+    },
+    depositFundingStack: {
+      confirmedCapital: capitalSummary.confirmedUsableCapital,
+      conditionalCapital: capitalSummary.conditionalUsableCapital,
+      requiredLoanByConfirmedCapital: requiredJeonseLoanAmount,
+      requiredLoanByConditionalCapital: conditionalRequiredJeonseLoanAmount
+    }
+  } : null;
+  var monthlyResult = transactionType === 'monthly' ? {
+    status: 'needs_input',
+    message: '월세는 보증금, 월세, 관리비, 월 고정 주거비 중심으로 별도 판단이 필요합니다.',
+    requiredInputs: ['보증금', '월세', '관리비', '월 생활비']
+  } : null;
+
   // 결과 저장
   state.loanResult = {
+    dealType: transactionType,
+    common: commonResult,
+    purchase: purchaseResult,
+    jeonse: jeonseResult,
+    monthly: monthlyResult,
     primaryPath: primaryLoanPath.primaryPath,
     primaryPathReason: primaryLoanPath.reason,
     priceBand: primaryLoanPath.priceBand,
@@ -1945,6 +2070,7 @@ function calcLoan() {
     monthlyLiving: monthlyLiving,
     income1: income1, income2: income2, job1: job1, job2: job2,
     ownershipContributionReview: ownershipContributionReview,
+    ownershipOrContractReview: ownershipOrContractReview,
     cash: cash, support: support, familySupportType: familySupportType, weddingCost: weddingCost
   };
   state.loanResult.financingStrategy = buildFinancingStrategy(state.loanResult);
@@ -1956,6 +2082,7 @@ function calcLoan() {
     intendedOwnershipRatio: ownershipContributionReview.primaryOwnershipRatio
   };
   state.loanResult.decisionCards = buildDecisionCards(state.loanResult);
+  state.loanResult.common.actionPlan = state.loanResult.decisionCards.actionPlanCards;
 
   state.profile = {
     income1: income1, income2: income2, job1: job1, job2: job2,
@@ -1973,17 +2100,19 @@ function calcLoan() {
   switchTab('tab-loan');
 }
 
-function renderLoanResult() {
-  var r = state.loanResult;
+function renderLoanResult(result) {
+  var r = result || state.loanResult;
   if (!r) return;
 
   document.getElementById('loan-no-data').style.display = 'none';
   document.getElementById('loan-result').style.display = 'block';
-  var dealTypeMode = getDealTypeMode(r.targetProperty.transactionType);
-  if (dealTypeMode !== 'purchase') {
-    renderAlternativeDealResult(r, dealTypeMode);
-    return;
-  }
+  var dealTypeMode = getLoanResultDealType(r);
+  if (dealTypeMode === 'purchase') return renderPurchaseResult(r);
+  if (dealTypeMode === 'jeonse') return renderJeonseResult(r);
+  if (dealTypeMode === 'monthly') return renderMonthlyResult(r);
+}
+
+function renderPurchaseResult(r) {
   setPurchaseLoanResultVisibility(true);
 
   document.getElementById('res-dsr-limit').textContent = won(r.primarySingleDsrLimit);
@@ -2039,34 +2168,41 @@ function setPurchaseLoanResultVisibility(visible) {
   });
 }
 
-function renderAlternativeDealResult(r, dealTypeMode) {
+function renderMonthlyResult(r) {
   setPurchaseLoanResultVisibility(false);
   var overview = document.getElementById('loan-overview');
   if (!overview) return;
-  if (dealTypeMode === 'monthly') {
-    overview.innerHTML = '<section class="loan-overview-card monthly-overview-card"><span class="loan-section-kicker">월세 거래유형</span>' +
-      '<h3>월세 조건은 별도 확인이 필요합니다.</h3>' +
-      '<p>월세에서는 매매용 LTV와 주담대 cap으로 판단하지 않습니다. 보증금, 월세, 관리비와 생활비를 중심으로 별도 비교해야 합니다.</p>' +
-      '<div class="loan-viewable-range"><h4>이번 화면에서 확인할 점</h4><p>후보 매물 탭에서 월세 보증금과 월세를 입력해 생활 후 잔여 현금을 비교하세요.</p></div></section>';
-    return;
-  }
-  var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
-  var surplus = monthlyNet - r.estimatedJeonseMonthlyInterest - r.monthlyLiving;
-  var affordabilityStatus = surplus >= 500000 ? 'safe' : (surplus >= 0 ? 'caution' : 'danger');
+  var monthly = r.monthly || {};
+  overview.innerHTML = '<section class="loan-overview-card monthly-overview-card"><span class="loan-section-kicker">월세 거래유형</span>' +
+    '<h3>월세 조건은 별도 확인이 필요합니다.</h3>' +
+    '<p>' + escapeHTML(monthly.message || '월세는 보증금, 월세, 관리비, 월 고정 주거비 중심으로 별도 판단이 필요합니다.') + '</p>' +
+    '<div class="loan-viewable-range"><h4>필요 입력</h4><p>' + (monthly.requiredInputs || ['보증금', '월세', '관리비', '월 생활비']).map(escapeHTML).join(' · ') + '</p></div>' +
+    '<div class="review-note"><strong>계약자·보증금·월세 부담 구조</strong><p>예정 명의비율은 월세의 핵심 결론으로 표시하지 않습니다. 계약자와 실제 부담 흐름을 별도로 확인하세요.</p></div></section>';
+}
+
+function renderJeonseResult(r) {
+  setPurchaseLoanResultVisibility(false);
+  var overview = document.getElementById('loan-overview');
+  if (!overview) return;
+  var jeonse = r.jeonse || {};
+  var surplus = jeonse.monthlySurplusAfterInterest !== undefined
+    ? jeonse.monthlySurplusAfterInterest
+    : monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome - r.estimatedJeonseMonthlyInterest - r.monthlyLiving;
+  var affordabilityStatus = jeonse.jeonseAffordabilityStatus || (surplus >= 500000 ? 'safe' : (surplus >= 0 ? 'caution' : 'danger'));
   var affordabilityLabel = { safe: '안전권', caution: '주의', danger: '위험' }[affordabilityStatus];
-  var buttimmok = r.policyLoanStatus && r.policyLoanStatus.buttimmokJeonse;
+  var buttimmok = jeonse.jeonsePolicyCandidates ? jeonse.jeonsePolicyCandidates.buttimmokJeonse : (r.policyLoanStatus && r.policyLoanStatus.buttimmokJeonse);
   var buttimmokLabel = buttimmok ? (POLICY_STATUS_LABELS[buttimmok.status] || '공식 확인 필요') : '공식 확인 필요';
   var buttimmokReason = buttimmok ? buttimmok.reason : '전세대출 정책 데이터 확인 필요';
   overview.innerHTML = '<section class="loan-overview-card jeonse-overview-card"><span class="loan-section-kicker">전세 거래유형</span>' +
     '<h3>전세 기준으로 다시 계산했습니다.</h3>' +
     '<p>전세는 매매용 LTV와 주담대 cap으로 판단하지 않습니다. 보증금, 보유자금, 필요한 전세대출과 월 이자 부담을 별도로 확인하세요.</p>' +
     '<div class="loan-overview-kpis">' +
-      '<div><span>목표 보증금</span><strong>' + won(r.targetProperty.price) + '</strong></div>' +
-      '<div><span>확정자금</span><strong>' + won(r.capitalSummary.confirmedUsableCapital) + '</strong></div>' +
+      '<div><span>목표 보증금</span><strong>' + won(jeonse.depositAmount || r.targetProperty.price) + '</strong></div>' +
+      '<div><span>확정자금</span><strong>' + won(jeonse.confirmedCapital || r.capitalSummary.confirmedUsableCapital) + '</strong></div>' +
       '<div><span>조건부 자금</span><strong>' + won(r.capitalSummary.conditionalSupport) + '</strong></div>' +
-      '<div><span>확정자금 기준 필요 전세대출</span><strong>' + won(r.requiredJeonseLoanAmount) + '</strong></div>' +
-      '<div><span>조건부 포함 기준 필요 전세대출</span><strong>' + won(r.conditionalRequiredJeonseLoanAmount) + '</strong></div>' +
-      '<div><span>예상 월 이자</span><strong>' + wonM(r.estimatedJeonseMonthlyInterest) + '</strong></div>' +
+      '<div><span>확정자금 기준 필요 전세대출</span><strong>' + won(jeonse.requiredJeonseLoanByConfirmedCapital || r.requiredJeonseLoanAmount) + '</strong></div>' +
+      '<div><span>조건부 포함 기준 필요 전세대출</span><strong>' + won(jeonse.requiredJeonseLoanByConditionalCapital || r.conditionalRequiredJeonseLoanAmount) + '</strong></div>' +
+      '<div><span>예상 월 이자</span><strong>' + wonM(jeonse.estimatedJeonseMonthlyInterest || r.estimatedJeonseMonthlyInterest) + '</strong></div>' +
       '<div><span>생활 후 월 여유</span><strong class="affordability-risk ' + affordabilityStatus + '">' + wonM(surplus) + ' · ' + affordabilityLabel + '</strong></div>' +
     '</div>' +
     '<div class="loan-viewable-range"><h4>전세대출 후보 · 판정 보류</h4>' +
@@ -2400,6 +2536,7 @@ function renderActionPlanSummary(cards) {
 function renderDecisionCards(cards) {
   var container = document.getElementById('decision-cards-container');
   if (!container || !cards) return;
+  var ownershipGroupLabel = cards.ownershipStructureLabel || '명의·자금기여 구조';
   container.innerHTML = '<section class="execution-decision-section">' +
     '<div class="decision-title-row"><h3>실행 판단 카드</h3><span class="execution-card-guide">현재 입력값 기준</span></div>' +
     '<p>자동 확정 조언이 아니라 실행 전 확인 순서입니다. 아래 항목을 확인하면 계산 결과의 신뢰도가 올라갑니다.</p>' +
@@ -2408,7 +2545,7 @@ function renderDecisionCards(cards) {
     renderDecisionCardGroup('정책대출 탈락·보류 사유', cards.policyExitCards, false) +
     '<div id="loan-borrower-section" class="execution-card-cluster">' +
       renderDecisionCardGroup('단독차주 / 공동차주 비교', cards.borrowerStructureCards, false) +
-      renderDecisionCardGroup('명의·자금기여 구조', cards.ownershipStructureCards, false) +
+      renderDecisionCardGroup(ownershipGroupLabel, cards.ownershipStructureCards, false) +
     '</div>' +
     '<div id="loan-risk-section" class="execution-card-cluster">' +
       renderDecisionCardGroup('소득 기준 분리와 소득 리스크', cards.incomeRiskCards, false) +
@@ -2519,6 +2656,12 @@ function renderMarriageStrategy(r) {
 function calcScenario() {
   if (!state.loanResult) return;
   var r = state.loanResult;
+  if (getLoanResultDealType(r) !== 'purchase') {
+    state.scenarioResult = null;
+    renderNonPurchaseScenarioGuard(r);
+    renderReport();
+    return;
+  }
 
   var baseRate = r.baseRate;
   var loanMax = r.finalLoanLimit;
@@ -2569,6 +2712,24 @@ function calcScenario() {
   renderScenario();
   syncTargetPricePreview();
   renderStressTest();
+}
+
+function renderNonPurchaseScenarioGuard(r) {
+  var dealType = getLoanResultDealType(r);
+  var noData = document.getElementById('scenario-no-data');
+  var result = document.getElementById('scenario-result');
+  if (result) result.style.display = 'none';
+  if (!noData) return;
+  var summary = '전세/월세 거래유형은 별도 요약이 필요합니다.';
+  if (dealType === 'jeonse' && r.jeonse) {
+    summary += ' 목표 보증금 ' + won(r.jeonse.depositAmount) +
+      ', 확정자금 기준 필요 전세대출 ' + won(r.jeonse.requiredJeonseLoanByConfirmedCapital) +
+      ', 예상 월 이자 ' + wonM(r.jeonse.estimatedJeonseMonthlyInterest) + '입니다.';
+  } else if (dealType === 'monthly' && r.monthly) {
+    summary += ' ' + r.monthly.message;
+  }
+  noData.innerHTML = '<p>' + escapeHTML(summary) + '</p>';
+  noData.style.display = 'block';
 }
 
 function syncTargetPricePreview() {
@@ -2714,6 +2875,10 @@ function renderScenario() {
   var s = state.scenarioResult;
   var r = state.loanResult;
   if (!s) return;
+  if (getLoanResultDealType(r) !== 'purchase') {
+    renderNonPurchaseScenarioGuard(r);
+    return;
+  }
 
   document.getElementById('scenario-no-data').style.display = 'none';
   document.getElementById('scenario-result').style.display = 'block';
@@ -2793,6 +2958,7 @@ function renderStressTest() {
   var s = state.scenarioResult;
   var r = state.loanResult;
   if (!s || !r) return;
+  if (getLoanResultDealType(r) !== 'purchase') return;
 
   var range = document.getElementById('stress-rate-range');
   var stressAdd = parseFloat(range ? range.value : 0) || 0;
@@ -3032,6 +3198,11 @@ function renderReport() {
   var dateEl = document.getElementById('report-date');
   if (dateEl) dateEl.textContent = dateStr;
 
+  if (getLoanResultDealType(r) !== 'purchase') {
+    renderNonPurchaseReport(r);
+    return;
+  }
+
   var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
 
   var body = '';
@@ -3094,4 +3265,32 @@ function renderReport() {
 
   var reportBody = document.getElementById('report-body');
   if (reportBody) reportBody.innerHTML = body;
+}
+
+function renderNonPurchaseReport(r) {
+  var reportBody = document.getElementById('report-body');
+  if (!reportBody || !r) return;
+  var dealType = getLoanResultDealType(r);
+  var monthlyNet = monthlyNetIncome(r.income1, r.job1) + monthlyNetIncome(r.income2, r.job2) + r.monthlyNetAdditionalIncome;
+  var body = '<div class="report-section"><h3>소득 & 자산 요약</h3>' +
+    '<table style="width:100%;font-size:13px"><tbody>' +
+    '<tr><td style="color:#888;padding:6px 0;width:40%">입력 세전 합산소득</td><td style="font-weight:600">' + won(r.incomeSummary.grossHouseholdIncome) + '</td></tr>' +
+    '<tr><td style="color:#888;padding:6px 0">확정자금</td><td style="font-weight:600">' + won(r.capitalSummary.confirmedUsableCapital) + '</td></tr>' +
+    '<tr><td style="color:#888;padding:6px 0">조건부 자금</td><td style="font-weight:600">' + won(r.capitalSummary.conditionalSupport) + '</td></tr>' +
+    '<tr><td style="color:#888;padding:6px 0">세후 합산 월소득 추정</td><td style="font-weight:600">' + wonM(monthlyNet) + '/월</td></tr>' +
+    '</tbody></table></div>';
+  body += '<div class="report-section"><h3>전세/월세 거래유형 안내</h3><p>전세/월세 거래유형은 별도 요약이 필요합니다. 매매용 시나리오, 매수 가능가, 최종 권장 대출액 리포트는 표시하지 않습니다.</p></div>';
+  if (dealType === 'jeonse' && r.jeonse) {
+    body += '<div class="report-section"><h3>전세 요약</h3>' +
+      '<table style="width:100%;font-size:13px"><tbody>' +
+      '<tr><td style="color:#888;padding:6px 0;width:40%">목표 보증금</td><td style="font-weight:600">' + won(r.jeonse.depositAmount) + '</td></tr>' +
+      '<tr><td style="color:#888;padding:6px 0">확정자금 기준 필요 전세대출</td><td style="font-weight:600">' + won(r.jeonse.requiredJeonseLoanByConfirmedCapital) + '</td></tr>' +
+      '<tr><td style="color:#888;padding:6px 0">조건부 포함 기준 필요 전세대출</td><td style="font-weight:600">' + won(r.jeonse.requiredJeonseLoanByConditionalCapital) + '</td></tr>' +
+      '<tr><td style="color:#888;padding:6px 0">예상 월 이자</td><td style="font-weight:600">' + wonM(r.jeonse.estimatedJeonseMonthlyInterest) + '</td></tr>' +
+      '<tr><td style="color:#888;padding:6px 0">생활 후 월 여유</td><td style="font-weight:600">' + wonM(r.jeonse.monthlySurplusAfterInterest) + '</td></tr>' +
+      '</tbody></table></div>';
+  } else if (dealType === 'monthly' && r.monthly) {
+    body += '<div class="report-section"><h3>월세 요약</h3><p>' + escapeHTML(r.monthly.message) + '</p><p>필요 입력: ' + r.monthly.requiredInputs.map(escapeHTML).join(' · ') + '</p></div>';
+  }
+  reportBody.innerHTML = body;
 }
