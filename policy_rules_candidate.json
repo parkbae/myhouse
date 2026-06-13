@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T22:18:41.490Z",
+  "generatedAt": "2026-06-13T21:55:55.093Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -98,7 +98,7 @@
     {
       "key": "myhome_policy_loans",
       "field": "policy_loans",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "마이홈 / 주택도시기금",
       "sourceUrl": "https://www.myhome.go.kr",
       "sourcePathHint": "마이홈포털 > 금융지원 > 디딤돌대출 / 버팀목대출 / 신생아특례",
@@ -218,7 +218,7 @@
     {
       "key": "verify_url_정책대출",
       "field": "",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
       "sourceUrl": "https://www.myhome.go.kr",
       "sourcePathHint": "정책대출 공식 확인 시작점",
