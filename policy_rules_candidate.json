@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T22:55:49.974Z",
+  "generatedAt": "2026-06-16T22:47:51.517Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -28,32 +28,15 @@
     {
       "key": "bok_mortgage_average_rate",
       "field": "market_rates.mortgage.actual_avg",
-      "status": "candidate_extracted",
+      "status": "manual_check_required",
       "officialAgency": "한국은행",
       "sourceUrl": "https://www.bok.or.kr",
       "sourcePathHint": "한국은행 > 보도자료 > 금융기관 가중평균금리",
       "candidateOnly": true,
       "candidateValues": {
-        "numericMentions": [
-          "06.01",
-          "2026년",
-          "2026.05",
-          "31",
-          "4",
-          "2.92%",
-          "0.10%",
-          "4.20%",
-          "2.02%",
-          "0.02%",
-          "2",
-          "29",
-          "2026"
-        ]
+        "numericMentions": []
       },
-      "matchedSnippets": [
-        ".06.01 상세보기 한국은행,「2026년 BOK 국제컨퍼런스」 개최 자세한 내용은 첨부파일을 참조하시기 바랍니다. 2026.05.31 상세보기 2026년 4월 금융기관 가중평균금리 □ 2026년 4월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.92%로 전월대비 0.10%p 상승하였으며, 대출금리는 연 4.20%로 전월 수준 유지 ― 2026년 4월말 잔액 기준 총수신금리는 연 2.02%로 전월대비 0.02%p 상... 2026.05.2",
-        "컨퍼런스」 개최 자세한 내용은 첨부파일을 참조하시기 바랍니다. 2026.05.31 상세보기 2026년 4월 금융기관 가중평균금리 □ 2026년 4월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.92%로 전월대비 0.10%p 상승하였으며, 대출금리는 연 4.20%로 전월 수준 유지 ― 2026년 4월말 잔액 기준 총수신금리는 연 2.02%로 전월대비 0.02%p 상... 2026.05.29 상세보기 BOK 소식 공지사항 2026."
-      ],
+      "matchedSnippets": [],
       "missingFields": [
         "market_rates.mortgage.actual_avg"
       ],
