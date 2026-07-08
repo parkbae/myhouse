@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-07T22:04:32.437Z",
+  "generatedAt": "2026-07-08T21:58:27.454Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -62,7 +62,7 @@
     {
       "key": "fsc_dsr_stress",
       "field": "dsr, purchase_mortgage_cap, ltv",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "금융위원회",
       "sourceUrl": "https://www.fsc.go.kr",
       "sourcePathHint": "금융위원회 > 보도자료 / 정책자료 / 주요정책문답",
@@ -189,7 +189,7 @@
     {
       "key": "verify_url_DSR_스트레스",
       "field": "",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
       "sourceUrl": "https://fsc.go.kr",
       "sourcePathHint": "DSR_스트레스 공식 확인 시작점",
