@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T21:47:52.112Z",
+  "generatedAt": "2026-07-16T21:55:26.389Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -28,30 +28,15 @@
     {
       "key": "bok_mortgage_average_rate",
       "field": "market_rates.mortgage.actual_avg",
-      "status": "candidate_extracted",
+      "status": "manual_check_required",
       "officialAgency": "한국은행",
       "sourceUrl": "https://www.bok.or.kr",
       "sourcePathHint": "한국은행 > 보도자료 > 금융기관 가중평균금리",
       "candidateOnly": true,
       "candidateValues": {
-        "numericMentions": [
-          "2026.06",
-          "28",
-          "2026년",
-          "5",
-          "2.93%",
-          "0.01%",
-          "4.19%",
-          "2.03%",
-          "0",
-          "2",
-          "26"
-        ]
+        "numericMentions": []
       },
-      "matchedSnippets": [
-        "계유산위원회 기념주화 교부일정 및 온&middot;오프라인 판매 안내 자세한 내용은 첨부파일을 참조하시기 바랍니다. 2026.06.28 상세보기 2026년 5월 금융기관 가중평균금리 □ 2026년 5월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.93%로 전월대비 0.01%p 상승하였으며, 대출금리는 연 4.19%로 전월 대비 0.01%p 하락 ― 2026년 5월말 잔액 기준 총수신금리는 연 2.03%로 전월대비 0... 2026.06.2",
-        "라인 판매 안내 자세한 내용은 첨부파일을 참조하시기 바랍니다. 2026.06.28 상세보기 2026년 5월 금융기관 가중평균금리 □ 2026년 5월중 예금은행의 신규취급액 기준 저축성수신금리는 연 2.93%로 전월대비 0.01%p 상승하였으며, 대출금리는 연 4.19%로 전월 대비 0.01%p 하락 ― 2026년 5월말 잔액 기준 총수신금리는 연 2.03%로 전월대비 0... 2026.06.26 상세보기 [보도자료] 2026년 5월중"
-      ],
+      "matchedSnippets": [],
       "missingFields": [
         "market_rates.mortgage.actual_avg"
       ],
@@ -60,7 +45,7 @@
     {
       "key": "fsc_dsr_stress",
       "field": "dsr, purchase_mortgage_cap, ltv",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "금융위원회",
       "sourceUrl": "https://www.fsc.go.kr",
       "sourcePathHint": "금융위원회 > 보도자료 / 정책자료 / 주요정책문답",
@@ -187,7 +172,7 @@
     {
       "key": "verify_url_DSR_스트레스",
       "field": "",
-      "status": "failed",
+      "status": "manual_check_required",
       "officialAgency": "금융위원회 / 국토교통부 / 주택도시기금 / 한국은행",
       "sourceUrl": "https://fsc.go.kr",
       "sourcePathHint": "DSR_스트레스 공식 확인 시작점",
