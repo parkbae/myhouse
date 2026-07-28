@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-27T21:56:02.085Z",
+  "generatedAt": "2026-07-28T21:55:11.839Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -28,15 +28,35 @@
     {
       "key": "bok_mortgage_average_rate",
       "field": "market_rates.mortgage.actual_avg",
-      "status": "manual_check_required",
+      "status": "candidate_extracted",
       "officialAgency": "한국은행",
       "sourceUrl": "https://www.bok.or.kr",
       "sourcePathHint": "한국은행 > 보도자료 > 금융기관 가중평균금리",
       "candidateOnly": true,
       "candidateValues": {
-        "numericMentions": []
+        "numericMentions": [
+          "03",
+          "04",
+          "2026.03",
+          "31",
+          "2026년",
+          "6",
+          "3.08%",
+          "0.15%",
+          "4.31%",
+          "0.12%",
+          "2.07%",
+          "0",
+          "2026.07",
+          "2",
+          "28",
+          "7"
+        ]
       },
-      "matchedSnippets": [],
+      "matchedSnippets": [
+        "관한 연구 03-투고안내 04-서지 정보 및 뒷표지 2026.03.31 상세보기 보도자료 이전 BOK 보도자료 보기 다음 BOK 보도자료 보기 2026년 6월 금융기관 가중평균금리 □ 2026년 6월중 예금은행의 신규취급액 기준 저축성수신금리는 연 3.08%로 전월대비 0.15%p 상승하였으며, 대출금리는 연 4.31%로 전월대비 0.12%p 상승 ― 2026년 6월말 잔액 기준 총수신금리는 연 2.07%로 전월말대비 0... 2026.07.2",
+        "2026.03.31 상세보기 보도자료 이전 BOK 보도자료 보기 다음 BOK 보도자료 보기 2026년 6월 금융기관 가중평균금리 □ 2026년 6월중 예금은행의 신규취급액 기준 저축성수신금리는 연 3.08%로 전월대비 0.15%p 상승하였으며, 대출금리는 연 4.31%로 전월대비 0.12%p 상승 ― 2026년 6월말 잔액 기준 총수신금리는 연 2.07%로 전월말대비 0... 2026.07.28 상세보기 2026년 7월 소비자동향조사"
+      ],
       "missingFields": [
         "market_rates.mortgage.actual_avg"
       ],
