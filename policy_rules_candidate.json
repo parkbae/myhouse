@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T23:59:51.750Z",
+  "generatedAt": "2026-10-01T00:15:01.179Z",
   "candidateOnly": true,
   "requiresHumanReview": true,
   "warning": "이 파일의 후보값은 자동 확정값이 아닙니다. 공식자료를 사람이 확인한 뒤 policy_rules.json에 수동 반영하세요.",
@@ -28,15 +28,31 @@
     {
       "key": "bok_mortgage_average_rate",
       "field": "market_rates.mortgage.actual_avg",
-      "status": "manual_check_required",
+      "status": "candidate_extracted",
       "officialAgency": "한국은행",
       "sourceUrl": "https://www.bok.or.kr",
       "sourcePathHint": "한국은행 > 보도자료 > 금융기관 가중평균금리",
       "candidateOnly": true,
       "candidateValues": {
-        "numericMentions": []
+        "numericMentions": [
+          "2026.06",
+          "07",
+          "2026년",
+          "8",
+          "3.21%",
+          "4.40%",
+          "0.13%",
+          "2.20%",
+          "0.05%",
+          "2026.09",
+          "3",
+          "30"
+        ]
       },
-      "matchedSnippets": [],
+      "matchedSnippets": [
+        "향상(potential productivity... 2026.06.07 상세보기 보도자료 이전 BOK 보도자료 보기 다음 BOK 보도자료 보기 2026년 8월 금융기관 가중평균금리 □ 2026년 8월중 예금은행의 신규취급액 기준 저축성수신금리는 연 3.21%로 전월 수준을 유지하였으며, 대출금리는 연 4.40%로 전월대비 0.13%p 상승 ― 2026년 8월말 잔액 기준 총수신금리는 연 2.20%로 전월말대비 0.05%p... 2026.09.3",
+        "2026.06.07 상세보기 보도자료 이전 BOK 보도자료 보기 다음 BOK 보도자료 보기 2026년 8월 금융기관 가중평균금리 □ 2026년 8월중 예금은행의 신규취급액 기준 저축성수신금리는 연 3.21%로 전월 수준을 유지하였으며, 대출금리는 연 4.40%로 전월대비 0.13%p 상승 ― 2026년 8월말 잔액 기준 총수신금리는 연 2.20%로 전월말대비 0.05%p... 2026.09.30 상세보기 금융통화위원회 의사록(2026년"
+      ],
       "missingFields": [
         "market_rates.mortgage.actual_avg"
       ],
